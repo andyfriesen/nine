@@ -46,8 +46,12 @@ for option, operand in options:
 
     if option == '-o':
         outputName = operand
-try:
+
+if 0:
+    try:
+        the_driver.compile(sources, outputName)
+    except error.CodeError, e:
+        print e
+        sys.exit(1)
+else:
     the_driver.compile(sources, outputName)
-except error.CodeError, e:
-    print e
-    sys.exit(1)

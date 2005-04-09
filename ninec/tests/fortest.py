@@ -28,5 +28,32 @@ class ForTest(unittest.TestCase):
                 print c
         '''))
 
+    def testUserClassArray(self):
+        util.runProgram('for_user_class_array_test', util.source('''
+            class Test:
+                static var instances as array(Test)
+
+                def ctor():
+                    Test.instances += 1
+
+                def printAll():
+                    for i in Test.instances:
+                        print i
+        '''))
+
+    def testInsanity(self):
+        util.runProgram('for_insanity_test', util.source('''
+            class Vertex:
+                def Draw():
+                    pass
+
+            class Quad:
+                var verts as array(Vertex)
+
+                def Draw():
+                    for v in self.verts:
+                        (v as Vertex).Draw()
+        '''))
+
 if __name__ == '__main__':
     unittest.main()

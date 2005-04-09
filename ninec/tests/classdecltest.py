@@ -336,5 +336,12 @@ class ClassDeclTest(unittest.TestCase):
 
         util.runProgram('classdecl_static_factory_test', program)
 
+    def testBlankFirstLine(self):
+        util.buildProgram('classdecl_blank_first_line_test', util.source('''
+            class Test:
+
+                pass
+        '''))
+
 if __name__ == '__main__':
     unittest.main()

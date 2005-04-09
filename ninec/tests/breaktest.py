@@ -12,17 +12,15 @@ from tests import util
 
 class BreakTest(unittest.TestCase):
     def testCompileString(self):
-        program = '''
-print "You should see one 9"
-var x = 5
+        program = util.source('''
+            print "You should see one 9"
+            var x = 5
 
-while x > 0:
-    print 9
-    x = x - 1
-    break
-    
-    
-    '''
+            while x > 0:
+                print 9
+                x = x - 1
+                break
+        ''')
 
         util.runProgram('break_test', program)
 

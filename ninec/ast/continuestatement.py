@@ -14,7 +14,6 @@ class ContinueStatement(object):
         return self
 
     def emitCode(self, gen):
-        ### GAY GAY GAY ###
-        # TODO: fix WhileStatement to use gen.breakLabel et al too.
-        if gen.continueLabel is not None:
-            gen.ilGen.Emit(gen.opCodes.Br, gen.continueLabel)
+        assert gen.continueLabel is not None
+
+        gen.ilGen.Emit(gen.opCodes.Br, gen.continueLabel)

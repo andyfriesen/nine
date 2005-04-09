@@ -14,7 +14,6 @@ class BreakStatement(object):
         return self
 
     def emitCode(self, gen):
-        ### GAY GAY GAY ###
-        # TODO: fix WhileStatement to use gen.breakLabel et al too.
-        if gen.breakLabel is not None:
-            gen.ilGen.Emit(gen.opCodes.Br, gen.breakLabel)
+        assert gen.breakLabel is not None
+
+        gen.ilGen.Emit(gen.opCodes.Br, gen.breakLabel)

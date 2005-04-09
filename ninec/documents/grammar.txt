@@ -203,12 +203,6 @@ Parser-level
         |       "^="
 
     type
-        :       typeName ( arrayBrackets )*
-
-    arrayBrackets
-        :       "[" ( "," )* "]"
-
-    typeName
         :       "int"
         |       "float"
         |       "string"

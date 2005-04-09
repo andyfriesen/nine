@@ -5,6 +5,7 @@ from nine import error
 class ParenthExpression(object):
     def __init__(self, childExpression):
         self.childExpression = childExpression
+        self.position = (0,"'<fixme: parenthExpression doesn't get position>")
 
     def parse(tokens):
         position = tokens.peek().position

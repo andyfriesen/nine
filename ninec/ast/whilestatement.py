@@ -36,6 +36,8 @@ class WhileStatement(object):
         return WhileStatement(arg, block)
 
     def emitCode(self, gen):
+        from nine.codegenerator import CodeGenerator
+
         from ast.breakstatement import BreakStatement
         from ast.continuestatement import ContinueStatement
 
@@ -46,7 +48,15 @@ class WhileStatement(object):
 
         gen.ilGen.Emit(gen.opCodes.Br, start)
         gen.ilGen.MarkLabel(loop)
-        #FIXME: This is a bad way of doing things
+
+        subGen = CodeGenerator(gen)
+        subGen.breakLabel = end
+        subGen.continueLabel = loop
+
+
+        self.block.emitCode(subGen)
+
+        """#FIXME: This is a bad way of doing things
         #   but I cannot think of another way for continue and break statements
         #   to have access to label references
         for child in self.block.children:
@@ -58,9 +68,9 @@ class WhileStatement(object):
             else:
                 child.emitCode(gen)
 
-        #self.block.emitCode(gen)
+        #self.block.emitCode(gen)"""
+
         gen.ilGen.MarkLabel(start)
         self.arg.emitLoad(gen)
         gen.ilGen.Emit(gen.opCodes.Brtrue, loop)
-        if breakFlag:
-            gen.ilGen.MarkLabel(end)
+        gen.ilGen.MarkLabel(end)
