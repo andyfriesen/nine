@@ -1,0 +1,103 @@
+
+# Cube demo.
+# A demonstration for the Nine compiler.
+# Andy Friesen
+# 15 Feb 2005
+
+var width = 640
+var height = 480
+
+var n= -1.0
+var o= 0.0
+var u= 1.0
+
+var frame = SDL.SetVideoMode(width, height, 32, SDL.OPENGL)
+SDL.SetCaption("cube.9")
+
+var aspectRatio = 4.0 / 3.0
+
+GL.MatrixMode(GL.PROJECTION)
+GL.LoadIdentity()
+GLU.Perspective(45.0, aspectRatio, 0.1, 100.0)
+
+GL.MatrixMode(GL.MODELVIEW)
+GL.LoadIdentity()
+
+GL.Enable(GL.DEPTH_TEST)
+GL.DepthFunc(GL.LEQUAL)
+GL.ClearDepth(1.0)
+GL.ClearColor(0.0, 0.0, 0.4, 0.0)
+
+var done = false
+var rot = 0.0
+
+while not done:
+    GL.Clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT)
+
+    GL.LoadIdentity()
+    GL.Translatef(0.0, 0.0, -6.0)
+    rot += 0.3
+    GL.Rotatef(rot,0.25,0.75,0.0)
+
+    GL.Begin(GL.QUADS)
+    GL.Color3f(u,u,o)
+    GL.Vertex3f(u,u,n)
+    GL.Color3f(o,u,o)
+    GL.Vertex3f(n,u,n)
+    GL.Color3f(o,u,u)
+    GL.Vertex3f(n,u,u)
+    GL.Color3f(u,u,u)
+    GL.Vertex3f(u,u,u)
+
+    GL.Color3f(u,o,u)
+    GL.Vertex3f(u,n,u)
+    GL.Color3f(o,o,u)
+    GL.Vertex3f(n,n,u)
+    GL.Color3f(o,o,o)
+    GL.Vertex3f(n,n,n)
+    GL.Color3f(u,o,o)
+    GL.Vertex3f(u,n,n)
+
+    GL.Color3f(u,u,u)
+    GL.Vertex3f(u,u,u)
+    GL.Color3f(o,u,u)
+    GL.Vertex3f(n,u,u)
+    GL.Color3f(o,o,u)
+    GL.Vertex3f(n,n,u)
+    GL.Color3f(u,o,u)
+    GL.Vertex3f(u,n,u)
+
+    GL.Color3f(u,o,o)
+    GL.Vertex3f(u,n,n)
+    GL.Color3f(o,o,o)
+    GL.Vertex3f(n,n,n)
+    GL.Color3f(o,u,o)
+    GL.Vertex3f(n,u,n)
+    GL.Color3f(u,u,o)
+    GL.Vertex3f(u,u,n)
+
+    GL.Color3f(o,u,u)
+    GL.Vertex3f(n,u,u)
+    GL.Color3f(o,u,o)
+    GL.Vertex3f(n,u,n)
+    GL.Color3f(o,o,o)
+    GL.Vertex3f(n,n,n)
+    GL.Color3f(o,o,u)
+    GL.Vertex3f(n,n,u)
+
+    GL.Color3f(u,u,o)
+    GL.Vertex3f(u,u,n)
+    GL.Color3f(u,u,u)
+    GL.Vertex3f(u,u,u)
+    GL.Color3f(u,o,u)
+    GL.Vertex3f(u,n,u)
+    GL.Color3f(u,o,o)
+    GL.Vertex3f(u,n,n)
+    GL.End()
+
+    GL.SwapBuffers()
+
+    var evt = SDL.PollEvent()
+
+    if evt.Type == SDL.QUIT:
+        done = true

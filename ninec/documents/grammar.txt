@@ -1,0 +1,221 @@
+
+Notation
+    For the most part, most things have the same meaning as regular
+    expressions.
+
+    Rule
+        :       FirstChoice | Alternative | AnotherAlternative | Etc
+        |       (zeroOrMore)*
+        |       (oneOrMore)+
+        |       (zeroOrOne)?
+        |       [exactlyOneOfAnythingInHere]
+
+Lexical
+
+    Token
+        :       Identifier
+        |       Number
+        |       String
+
+    Identifier
+        :       [a-z_][a-z0-9_]*
+
+    Number
+        :       [0-9]+
+
+    String
+        :       APOSTRAPHE QuotedChar* APOSTRAPHE
+        |       QUOTE QuotedChar* QUOTE
+
+    QuotedChar
+        :       [^\\]
+        |       "\\" "."
+
+Parser-level
+
+    qualifiedName
+        :       Identifier ( "." Identifier )*
+
+
+    classDeclaration
+        :       "class" Identifier ( baseClasses )? ":" classBody
+
+    baseClasses
+        :       "(" qualifiedName ( "," qualifiedName )* ")"
+
+    classBody
+        :       ( functionDeclaration
+                | variableDeclaration
+                | passStatement
+                )*
+
+
+    functionModifier
+        :       "static" | "virtual" | "override"
+
+    functionDeclaration
+        :       ( functionModifier )*
+                    "def" Identifier
+                    "(" functionParameters ")" ( returnType )? ":"
+                    blockStatement
+
+    functionParameter
+        :       Identifier ( "as" type )?
+
+    functionParameters
+        :       functionParameter ( "," functionParameter )*
+
+    returnType
+        :       "as" type
+
+    variableDeclaration
+        :       "var" Identifier ( "as" type )? ( "=" expression )?
+
+
+    printStatement
+        :       "print" ( expression )?
+
+    assignStatement
+        :       expression assignOperator expression
+
+    returnStatement
+        :       "return" ( expression )?
+
+    ifStatement
+        :       "if" expression ":" blockStatement ( "else" ":" blockStatement )?
+
+    whileStatement
+        :       "while" expression ":" blockStatement
+
+    expressionStatement
+        :       expression
+
+    passStatement
+        :       "pass"
+
+
+    expression
+        :       logicalExpression
+
+    logicalExpression
+        :       relationalExpression ( logicalOperator logicalExpression )?
+
+    relationalExpression
+        :       bitwiseExpression ( relationalOperator relationalExpression )?
+
+    bitwiseExpression
+        :       shiftExpression ( bitwiseOperator bitwiseExpression )?
+
+    shiftExpression
+        :       addExpression ( shiftOperator shiftExpression )?
+
+    addExpression
+        :       multiplyExpression ( addOperator addExpression )?
+
+    multiplyExpression
+        :       unaryExpression ( multiplyOperator multiplyExpression )?
+
+    unaryExpression
+        :       postfixExpression
+        |       unaryOperator unaryExpression
+
+    postfixExpression
+        :       castExpression
+        |       indexExpression
+        |       functionExpression
+        |       dotExpression
+
+    castExpression
+        :       postfixExpression "as" type
+
+    indexExpression
+        :       postfixExpression "[" expression "]"
+
+    functionExpression
+        :       postfixExpression ( "(" functionArguments ")" )
+
+    dotExpression
+        :       primitiveExpression ( "." Identifier )*
+
+    functionArguments
+        :       expression ( "," expression )*
+
+    primitiveExpression
+        :       variableReference
+        |       newArrayExpression
+        |       numericLiteral
+        |       stringLiteral
+        |       selfExpression
+        |       parenthExpression
+
+    variableReference
+        :       Identifier
+
+    newArrayExpression
+        :       "array" "(" type ( "," expression )+ ")"
+
+    numericLiteral
+        :       Number
+
+    stringLiteral
+        :       String
+
+    selfExpression
+        :       "self"
+
+    parenthExpression
+        :       "(" expression ")"
+
+
+    logicalOperator
+        :       "and" | "or"
+
+    relationalOperator
+        :       "==" | "!=" | "<" | ">" | "<=" | ">="
+
+    bitwiseOperator
+        :       "&" | "|" | "^"
+
+    shiftOperator
+        :       "<<" | "<<<" | ">>"
+
+    addOperator
+        :       "+" | "-"
+
+    multiplyOperator
+        :       "*" | "/" | "%"
+
+    unaryOperator
+        :       "+" | "-" | "~" | "not"
+
+    assignOperator
+        :       "="
+        |       "<<="
+        |       ">>="
+        |       ">>>="
+        |       "+="
+        |       "-="
+        |       "*="
+        |       "/="
+        |       "%="
+        |       "&="
+        |       "|="
+        |       "^="
+
+    type
+        :       typeName ( arrayBrackets )*
+
+    arrayBrackets
+        :       "[" ( "," )* "]"
+
+    typeName
+        :       "int"
+        |       "float"
+        |       "string"
+        |       "boolean"
+        |       "void"
+        |       qualifiedName
+        |       typeOfType
+
+    typeOfType
+        :       "typeof" "(" expression ")"

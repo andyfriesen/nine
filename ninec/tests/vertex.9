@@ -1,0 +1,36 @@
+
+class Vertex:
+    var x as float
+    var y as float
+    var z as float
+
+    var r as float
+    var g as float
+    var b as float
+
+    static def new(x as float, y as float, z as float) as Vertex:
+        var vert = Vertex()
+        vert.x = x
+        vert.y = y
+        vert.z = z
+        return vert
+
+    def color(r as float, g as float, b as float) as Vertex:
+        self.r = r
+        self.g = g
+        self.b = b
+        return self
+
+    override def ToString() as string:
+        #var result as string = self.x.ToString()
+
+        #result = string.Concat(self.x.ToString(), ', ')
+
+        return self.x.ToString()
+
+var v = Vertex.new(1.1, 2.2, 3.3)
+print v.color(1.1, 1.2, 1.3)
+
+#~ print v.x
+#~ print v.y
+#~ print v.z

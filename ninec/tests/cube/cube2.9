@@ -1,0 +1,80 @@
+
+# Cube demo.
+# A demonstration for the Nine compiler.
+# Andy Friesen
+# 15 Feb 2005
+
+var width = 640
+var height = 480
+
+var cube = array(Quad, 6)
+
+# Top layer
+var ttl = Vertex(-1.0, -1.0, 1.0).Color(0.0, 0.0, 0.0)
+var ttr = Vertex( 1.0, -1.0, 1.0).Color(0.0, 0.0, 1.0)
+var tbl = Vertex(-1.0,  1.0, 1.0).Color(0.0, 1.0, 0.0)
+var tbr = Vertex( 1.0,  1.0, 1.0).Color(0.0, 1.0, 1.0)
+
+# Bottom Layer
+var btl = Vertex(-1.0, -1.0, -1.0).Color(1.0, 0.0, 0.0)
+var btr = Vertex( 1.0, -1.0, -1.0).Color(1.0, 0.0, 1.0)
+var bbl = Vertex(-1.0,  1.0, -1.0).Color(1.0, 1.0, 0.0)
+var bbr = Vertex( 1.0, 1.0, -1.0).Color(1.0, 1.0, 1.0)
+
+# Make faces of the cube
+cube[0] = Quad.New(ttl, ttr, tbr, tbl) #top
+cube[1] = Quad.New(btl, btr, bbr, bbl) #bottom
+
+cube[2] = Quad.New(ttl, ttr, btr, btl) # Left
+cube[3] = Quad.New(tbl, tbr, bbr, bbl) # Right
+
+cube[4] = Quad.New(ttl, tbl, bbl, btl) # front
+cube[5] = Quad.New(ttr, tbr, bbr, btr) # back
+
+var n= -1.0
+var o= 0.0
+var u= 1.0
+
+var frame = SDL.SetVideoMode(width, height, 32, SDL.OPENGL)
+SDL.SetCaption("cube.9")
+
+var aspectRatio = 4.0 / 3.0
+
+GL.MatrixMode(GL.PROJECTION)
+GL.LoadIdentity()
+GLU.Perspective(45.0, aspectRatio, 0.1, 100.0)
+
+GL.MatrixMode(GL.MODELVIEW)
+GL.LoadIdentity()
+
+GL.Enable(GL.DEPTH_TEST)
+GL.DepthFunc(GL.LEQUAL)
+GL.ClearDepth(1.0)
+GL.ClearColor(0.0, 0.0, 0.4, 0.0)
+
+var done = false
+var rot = 0.0
+
+while not done:
+    GL.Clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT)
+
+    GL.LoadIdentity()
+    GL.Translatef(0.0, 0.0, -6.0)
+    rot += 0.3
+    GL.Rotatef(rot,0.25,0.75,0.0)
+
+    GL.Begin(GL.QUADS)
+
+    var i = 0
+    while i < cube.Length:
+        cube[i].Draw()
+        i += 1
+
+    GL.End()
+
+    GL.SwapBuffers()
+
+    var evt = SDL.PollEvent()
+
+    if evt.Type == SDL.QUIT:
+        done = true

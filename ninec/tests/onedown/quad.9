@@ -1,0 +1,41 @@
+class Vertex:
+    var x as float
+    var y as float
+    var z as float
+    
+    var r as float
+    var g as float
+    var b as float
+    
+    static def new(x as float, y as float, z as float) as Vertex:
+        var v = Vertex()
+        v.x = x
+        v.y = y
+        v.z = z
+        v.r = 1.0
+        v.g = 1.0
+        v.b = 1.0
+        return v
+    
+    def colour(r as float, g as float, b as float):
+        self.r = r
+        self.g = g
+        self.b = b
+    
+    def Draw():
+        GL.Color3f(self.r, self.g, self.b)
+        GL.Vertex3f(self.x, self.y, self.z)
+
+class Quad:
+    var points as array(Vertex)
+    
+    static def new(vertecies as array(Vertex)) as Quad:
+        var q = Quad()
+        q.points = vertecies
+        return q
+    
+    def Draw():
+        var i = 0
+        while i < self.points.Length:
+            self.points[i].Draw()
+            i += 1

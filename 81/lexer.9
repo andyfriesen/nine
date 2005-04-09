@@ -1,0 +1,356 @@
+from nine.token import *
+from nine.tokenlist import TokenList
+
+# FIXME
+KEYWORDS = (
+    'print',
+
+    # Flow Control
+    'goto',
+    'if',
+    'else',
+    'while',
+    'try',
+    'except',
+    'return',
+
+    # Definitions
+    'def',
+    'class',
+    'var',
+
+    # Primitive type names
+    'float',
+    'int',
+    'string',
+    'boolean',
+    'void',
+    'array',
+
+    # Declaration modifiers
+    'static',
+    'virtual',
+    'override',
+    'abstract',
+    'sealed',
+
+    # Unary operators
+    'not',
+
+    # Primitive constants
+    'true',
+    'false',
+    'self',
+    'null', # 'None'?
+)
+
+RelationalOperators = (
+    '!=',
+    '==',
+    '>=',
+    '<=',
+    '>',
+    '<',
+)
+
+ShiftOperators = (
+    '<<',
+    '>>',
+    '>>>',
+)
+
+AddOperators = (
+    '+',
+    '-',
+)
+
+MultiplyOperators = (
+    '*',
+    '/',
+    '%',
+)
+
+UnaryOperators = (
+    '+',
+    '-',
+    '~',
+    'not',
+)
+
+BitwiseOperators = (
+    '|',
+    '&',
+    '^',
+)
+
+AssignOperators = (
+    '=',
+    '<<=',
+    '>>=',
+    '>>>=',
+    '+=',
+    '-=',
+    '*=',
+    '/=',
+    '%=',
+    '&=',
+    '|=',
+    '^='
+)
+
+OPERATORS = list(
+    RelationalOperators + ShiftOperators + AddOperators + MultiplyOperators +
+    UnaryOperators + BitwiseOperators + AssignOperators
+)
+
+class LexResult:
+    var token as Token
+    var pos as int
+
+# FIXME
+# Operators need to be sorted by length
+OPERATORS.sort(lambda a, b: b.Length - a.Length)
+
+def _countIndent(line as string) as int:
+    'Returns the number of spaces of indentation that a line has.'
+    var count = 0
+    var index = 0
+    while index < line.Length:
+        char = line[index]
+        index += 1
+
+        if char == ' ':
+            count += 1
+        elif char == '\t':
+            # FIXME
+            raise Error, 'Do not use hard tabs to indent!  It is EVIL.'
+        elif char == '\n':
+            # This is a blank line.  Blank lines don't count.  Start counting all over.
+            count = 0
+        else:
+            return count
+
+    return 0
+
+def _lexNumber(source as string, pos as int) as LexResult:
+    '''Lexes a number.
+
+    source - The entirety of the source text. (as a string)
+    pos - Current position within the source text. (integer)
+
+    Returns (token, pos) where token is the number that was lexed out,
+    and pos is the position of the next non-number character.
+    '''
+    startpos = pos
+
+    c = source[pos]
+    # FIXME?
+    assert c.IsDigit, "_lexNumber expected a digit, not %s" % repr(c)
+
+    token = c
+    pos += 1
+    while pos < source.Length:
+        c = source[pos]
+        if c.IsDigit or c == '.':
+            token += c
+            pos += 1
+        else:
+            break
+
+    return Token('literal', token, startpos), pos
+
+def _lexIdentifier(source as int, pos as int) as LexResult:
+    '''Lexes an identifier. (this comment is extraneous)
+
+    See _lexNumber.  It's practically the same in every respect imaginable.
+    '''
+    var startpos = pos
+
+    var c = source[pos]
+    assert c.IsAlpha or c == '_', '_lexNumber expected an alphanumeric or underscore, not %s' % repr(c)
+    token = c
+    pos += 1
+    while pos < source.Length:
+        c = source[pos]
+        if c.IsAlpha or c.IsDigit or c == '_':
+            token += c
+            pos += 1
+        else:
+            break
+
+    if token in KEYWORDS:
+        return Token('keyword', token, startpos), pos
+    else:
+        return Token('identifier', token, startpos), pos
+
+def _lexStringLiteral(source as int, pos as int) as LexResult:
+    'Works the same way as _lexIdentifier and _lexNumber'
+
+    c = source[pos]
+    assert c in '\'\"', '_lexStringLiteral expected "\'", not %r' % c
+    openquote = c
+
+    pos += 1
+    token = c
+    while pos < source.Length:
+        c = source[pos]
+
+        if c == '\n':
+            raise Exception, "End of line reached before string ended"
+
+        if c == openquote:
+            token += c
+            pos += 1
+            break
+
+        if c == '\\' and pos < source.Length - 1:
+            pos += 1
+            c = source[pos]
+
+        token += c
+        pos += 1
+        if pos >= source.Length:
+            break
+
+    return Token('literal', token), pos
+
+def _lexComment(source as int, pos as int) as LexResult:
+    'Works the same way as _lexIdentifier and _lexNumber'
+
+    c = source[pos]
+    pos += 1
+    assert c == '#', '_lexComment expected a #, not %r' % c
+
+    comment = c
+    while c != '\n':
+        c = source[pos]
+        pos += 1
+        comment += c
+
+    return Token('comment', comment), pos
+
+def _findNewLines(source as string) as array(int):
+    # linear indeces of every newline in the program
+    var newLines = System.Collections.ArrayList()
+    pos = 0
+    while True:
+        pos = source.find('\n', pos)
+        if pos == -1:
+            break
+
+        newLines.Add(pos)
+        # Increment pos so that the next source.find call finds the next newline AFTER the one we just reported.
+        pos += 1
+
+    #return newLines or [0] # Make sure at least one element is returned.
+    if newLines.Length > 0:
+        return newLines.ToArray(typeof(int))
+    else:
+        return array(int, 0)
+
+def lex(source as string, fileName as string='<unknown>') as TokenList:
+    var pos = 0
+    var tokens = System.Collections.ArrayList()
+    var newLines = _findNewLines(source)
+    var curLine = 0
+
+    # FIXME: not going to do closures this semester.  Rewrite without using them. ;)
+    def getChar() as char:
+        if pos < source.Length:
+            return source[pos]
+        else:
+            return None
+
+    # Ditto
+    def eof() as boolean:
+        return pos >= source.Length
+
+    var indents = ArrayList() # as code indents, we push the previous indentation level
+    indents.Add(0)
+
+    while not eof():
+
+        # If the current position is after the next newline char, increment the current line counter.
+        # (deal with going past the end of the newLines list the boring but servicable way)
+        try:
+            while pos > newLines[curLine]:
+                curLine += 1
+        except IndexError:
+            pass
+
+        var c = source[pos]
+
+        if c == '\n':
+            pos += 1
+
+            if tokens.Length > 0 and tokens[-1] is not END_OF_STATEMENT:
+                tokens.append(END_OF_STATEMENT)
+
+            var count = _countIndent(source[pos:])
+
+            # FIXME: can't expect to make negative indeces work.  We don't own the .NET collection classes.
+            if count > indents[-1]:
+                indents.append(count)
+                tokens.append(BEGIN_BLOCK)
+
+            elif count < indents[-1]:
+                while count < indents[-1]:
+                    assert indents.Length > 1
+                    tokens.append(END_BLOCK)
+                    indents.pop()
+
+                if count != indents[-1]:
+                    raise Exception, 'Indentation does not match any previous indent'
+
+            continue
+
+        elif c.isspace():
+            pos += 1
+            continue
+
+        elif c.IsAlpha:
+            token, pos = _lexIdentifier(source, pos)
+
+        elif c.IsDigit:
+            token, pos = _lexNumber(source, pos)
+
+        elif c == '\'' or c == '"':
+            # String literal
+            token, pos = _lexStringLiteral(source, pos)
+
+        elif c == '#':
+            comment, pos = _lexComment(source, pos)
+            continue
+
+        else:
+            # we want symbol to be a string, but omitting the type annotation will make it a char.
+            # Maybe this is a bug in the language spec.
+            var symbol as string = source[pos]
+            var endPos = pos + 1
+            while true:
+                if endPos >= source.Length or source[pos:endPos + 1] not in OPERATORS:
+                    # FIXME
+                    break
+                endPos += 1
+
+            symbol = source[pos:endPos]
+            pos = endPos
+            token = Token('symbol', symbol, curLine)
+
+        token.line = curLine
+        token.file = fileName
+        tokens.append(token)
+
+    if not tokens or tokens[-1] is not END_OF_STATEMENT:
+        tokens.Add(END_OF_STATEMENT)
+
+    while indents[-1] > 0:
+        tokens.Add(END_BLOCK)
+        indents.pop()
+
+    if not tokens or tokens[-1] is not END_OF_STATEMENT:
+        tokens.Add(END_OF_STATEMENT)
+
+    tokens.Add(END_OF_FILE)
+
+    return TokenList(tokens)

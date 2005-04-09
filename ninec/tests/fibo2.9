@@ -1,0 +1,13 @@
+
+# Recursive algorithm to compute the Fibonacci sequence.
+
+def fibo(n as int) as int:
+    if n < 2:
+        return 1
+    else:
+        return fibo(n - 1) + fibo(n - 2)
+
+var i = 0
+while i < 10:
+    print fibo(i)
+    i = i + 1

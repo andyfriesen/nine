@@ -1,0 +1,965 @@
+Nine
+
+Andy Friesen
+19 July 2004
+
+Last update: 23 Sep 2004
+
+Movitation:
+
+    Currently, programming languages seem to be split into two main camps: languages which favour speed of execution over ease of use, and languages which favour development speed.
+
+    Nine is an attempt to be both at the same time.
+
+    Major features:
+        Slick, smooth Python-inspired syntax.
+        Native compilation.
+        Static, inferred type system backed by a polymorphic variant type.  This allows the benefits of static compilation to be reaped without constraining the programmer's ability to express a notion.
+
+        Object Orientation
+            "Pure OO" mindset -- everything is an object.
+            Not a purist's OO.
+                Allow free functions.
+                Stay true to the *idea* of what makes OO good, not what Java/Python/X is good at.
+
+            Interfaces
+
+            Abstract classes.
+
+            Multiple Inheritance.
+                Oft-maligned, but has its uses.
+                TODO: look into how Eiffel does this.  It's far and away better than C++, apparently.
+
+        Garbage Collection
+            Mandatory for big software nowadays.
+            Don't place constraints on how the collector is implemented.
+
+        A good compile-time metalanguage.
+            AKA macros, like those offered by Lisp.
+            Crucial
+                Extending a language is done all the time (even if only by way of templates and operator overloading), and it's important that the language be able to adapt to the problem space.
+            A metalanguage is important for enabling syntax extensions without cluttering the compiler.
+            Must be robust and powerful, but not so much that it makes code analyzing tools unrealistic.
+
+        Speed.  Constructs are chosen to allow maximal semantic flexibility without imposing unnecessary overhead.
+
+    Other cool things:
+        Smooth generics. (more like .NET than C++ templates)
+        Pointer evil--if you really want it.
+        Design by contract. (preferably through macros)
+        RIIA
+        Targettable to platforms like .NET, but not hopelessly dependant on any.
+
+Goals:
+
+    Above all else:
+        *Easy to read and write*
+            Easy to say the right thing.
+            Hard to say something you don't actually mean.
+            Let the programmer do the Wrong Thing when he is sure that's what he wants.
+
+        Optimizable
+            Write like Python, run like C++!
+
+    Free from specific runtime engines
+
+        Python translator?
+            Easiest way to get the language on its feet.  Would run faster than an interpreter.
+
+        Interpreter?
+            Time constraints.
+            Ideal: implement interpreter in itself!
+                Would run decently if the interpreter were compiled. (supposing the compiler can compile itself)
+
+        .NET code generator
+            Directly generating ASM is a bad idea: both .NET and LLVM do their own optimizations, and I'm willing to bet that their respective authors are smarter than I am.
+            Objects, exceptions, garbage collection, class framework, etc for free.
+
+        JVM?
+            Has much more market penetration than .NET does at present.
+
+        LLVM
+            Freestanding, unlike .NET and the JVM.
+
+        C or C--
+            Much more straightforward than other compile targets because the code generator simply has to create source code for another language.
+
+            C is everywhere.  C-- is made to be a compiler target.
+
+    Parsable by IDEs, refactoring tools, and so forth.
+        Eclipse's refactoring tools are awesome.  Similar tools for Nine should be realistic.
+
+    Overlap with Python when in doubt.
+        Guido van Rossum has unbelievably good taste and instincts.
+
+Nongoals:
+
+    Innovative for its own sake.  Fix known problems.  No solutions looking for problems.
+
+    For everyone.  Pleasing everybody is impossible.
+
+    Complicated.  Cater to the common cases, even if at the detriment to unusual situations.
+
+    Magic.  Code should do what it looks like it does and nothing else.
+
+Lexical
+
+    Unicode.
+
+    Identifiers begin with an alphabetic character or an underscore, followed by alphanumeric characters and underscores.
+
+    Numeric literals start with a numeric character, and are followed by more numeric characters. (and an optional decimal point)
+        If the second character is a lowercase letter, the letter denotes the radix:
+            0b1101 -- binary
+            0o1245 -- octal
+            0x120A -- hexidecimal
+            012345 -- decimal (unlike C, a leading zero does not indicate octal!)
+            123456 -- decimal
+
+            Case sensitive.  Radix specifier *must* be lowercase. (particularly for octals: allowing 0O123 is a Bad Idea)
+
+    String literals are enclosed in single quotes (') or double quotes (")
+        No difference between quoting styles at all.
+        Backslash operates as an escape character, like pretty much every other language out there.
+
+    Multiline comments are surrounded by triple quotes (either single or double)
+        eg """this string can span lines""" or '''this one too'''
+
+    Raw strings are preceeded by an 'r'
+        Backslashes in raw strings are read verbatim, instead of being interpreted as escape sequences. (it's really handy for regular expressions)
+        r'c:\Program Files\Subversion\bin\svn.exe'
+
+    Comments
+        # or /* */
+        No reason to invent new syntax.
+        Block comments are good.
+            Compatible with doxygen.
+
+        // line comments?
+            Conflicts with Python's division syntax.
+            Maybe later.  Hold off for now.
+
+    End of statement
+        Semicolon
+        End of line iff there are no open parenthetical blocks or quotes.
+
+    Blocks
+        Blocks follow indentation.
+        Statement that marks the beginning of a block gets a colon. (is necessary to maintain separation between the lexer and parser)
+
+    Operators
+        Usual mathematical things
+            "+, -, *, /, %"
+            "<, >, >=, <=, ==, !="
+
+        Bitwise ops.
+            "|, &, !, <<, >>, >>>"
+
+        Boolean operations
+            "and, or, not"
+
+        Type qualifier.
+            "as"
+
+            "X as T"
+            Specifies that X is of type T.
+            Type cast when used as an expression.
+                "x = velocity as int"
+
+        "of"
+        Precedes arguments to parametric types and generic methods. (maybe.  See below)
+            "dict of (K, V)"
+            "array of T"
+            "IEnumerator of int"
+                Relatively nice for types.
+                Parenths are optional if there is just one arg.
+
+            Problematic with functions:
+                "result = permute of T(input)"
+                    Awful.
+                    Bearable if T can be deduced most of the time.
+
+                "result = permute(T, input)"
+                    Lexically sound.  Looks nice.
+                    Inconsistent?
+                    Potential ambiguity in the face of overloads. (if overloads are to be allowed)
+
+                "result = permute(T)(input)"
+                    Clear to a computer, but not necessarily a person.
+
+Declarations
+
+    Types
+        Just a name.
+        "Fully.Qualified.Name"
+        "Parametric.Type(T1, T2, ...)"
+        etc
+
+        Parametric type syntax
+            Still uncertain
+
+            "vector(T)"
+                Current favourite.
+                +Never ambigious: types only ever appear after the "as" keyword.
+                -Looks like function application.
+                -Confusing in the case of parametric functions.
+                    "result = permute(T)(my_list)"
+
+            "type of (type arguments)"
+            "type of single_argument"
+                +General case (ie user-class syntax)
+                -May be weird in some cases.
+                    "surfaces as ResourceController of DisplaySurface"
+
+        Builtin types
+            Ideally not builtins at all (macros or whatever)
+            Literal expressions too
+
+            Primitives
+                int - signed integer of at least 16 bits: whatever size is most convenient for the host system.
+                int8, int16, int32, int64 - signed integer of exactly n bits
+
+                uint - unsigned integer of at least 16 bits: whatever is most convenient for the host system.
+                uint8, uint16 etc - unsigned integer of n bits.
+
+                float - floating point in the format that suits the host system best
+                float32, float64, float128 - floating point number of exactly n bits.
+
+                char - one character
+
+                string - a string of characters
+
+                boolean - true or false
+
+            variant
+
+                Dynamic "duck" type. (if it looks like a duck and talks like a duck, it must be a duck)
+                Performs name lookup of all attributes at runtime.
+
+                Implicit conversion to variant?
+                    +Reduces syntactic noise.  Code says what it means and very little else.
+                    -Potentially unwanted behaviour. (ex in speed critical code)
+
+                Explicit conversion from variant
+                    Performs a runtime check, raises an exception on failure.
+
+                Standard "builtin" (sort of) functions for dealing with variants specifically.
+                    "getattr(object as variant, name as string) as variant"
+                        Retrieve an attribute from a variant, given the name of the attribute.
+                        Raises an exception if the attribute does not exist.
+
+                    "getattr(object as variant, name as string, default as variant) as variant"
+                        Like the above form, but returns "default" if the attribute cannot be fetched.
+
+                    "setdefault(object as variant, name as string, value as variant) as variant"
+                        Tries to get the attribute with the given name.  If it cannot be fetched, the attribute
+                        is assigned to the value given.  If the default cannot be set, an exception is thrown.
+
+                        Iffy.
+
+                    "setattr(object as variant, name as string, value as varaint) as void"
+                        Set an attribute of an object, given its name.
+                        Raises an exception if the attribute cannot be set. (is not defined as a part of the underlying type)
+                        ** Forcing an explicit conversion to variant would be irritating here!! **
+                            Is this a job for generics?
+                            """
+                            generic AnyType
+                            def setattr(object as variant, name as string, value as AnyType) as void:
+                                do_set_attribute(object, name, (value as variant))
+                            """
+
+                    "hasattr(object as variant, name as string) as boolean"
+                        Returns true if the object has an attribute with the given name.
+
+                Objects should be able to overload attribute access to facilitate these functions.
+
+                Variants and overloaded functions
+                    If a variant is passed as an argument to an overloaded function, the variant's *runtime* type is tested until an overload is matched.
+
+                    May be a bad idea.
+
+                Compiler reserves the right to optimize variants out of the code, if the exact type used can be deduced.
+
+
+            array - Uncertain:
+
+                "array of T"
+                "array of (T, num_dimensions)"
+                    +Consistent with other parametric type syntax.
+                    -Much too verbose for multidim/jagged arrays.
+                        Need shorthand.
+                    -Potentially confusing in the case of 'ragged' arrays:
+                        "array of (array of (T, 2))"
+                        "array(array(T, 2))"
+
+                "T[]"
+                "T[][,]"
+                    +Familiar.
+                    +Scales
+                        Is this important?  How commonplace are array constructions like this?
+                    -Cryptic.
+                    Is it broken?  Does it need fixing?
+
+                "array[] of T"
+                "array[,][] of T"
+                    Special case syntax: array must be a keyword.
+                    Scales.
+                    Simplest case looks dumb.
+                        What is "array of T"?
+                            Special case shortcut for "array[] of T"?
+                            Illegal?
+                            Weird no matter what.
+
+            dict
+                "dict of (T, U)"
+                    Kinda clunky.
+                        {} syntax for literals. (always "dict of (object, object)"?)
+
+                        Must have syntax for explicitly stating the key and value types.
+                            "foo = dict(T, U) { key : value, key : value, .... }"
+                                NO.  Type is always preceeded by 'as' keyword.  This would break that rule.
+
+                            "foo = { key : value, key : value } as dict(T, U)"
+                                +Straightforward: looks like a cast.
+                                -Inconsistent: isn't a cast, but looks like one.
+
+                            Try to deduce?
+                                -Bad idea: could have unexpected effects on coersion rules.
+
+            "typeof(expr)"
+                Purely a compile-time construct
+                Equivalent to whatever type expr has.
+
+                eg
+                    "x as int"
+                    "y as typeof(x)" - y is an int
+                    "z as typeof(foo.bar(y, x))" - z is of whatever type foo.bar returns
+
+
+        .NET types
+            Note to self: Macros should be powerful enough to effect these in a non-.NET environment.
+            They may be implemented in the compiler proper on the .NET platform itself, or via macros which connect directly to the IL code generator, maybe.  The point is that it be possible, not that it actually be implemented in this way.
+
+            Delegates
+
+                "myDelegate as delegate(arg as type, ...) as ReturnType"
+                    Verbose.  Unclear?  Overuse of the 'as' keyword renders it little more than line noise.
+                    .NET needs us to create an anonymous delegate type to allow this. (for interop, anyway)
+
+                "myDelegate as delegate of (returnType, Type1, Type2, ....)"
+                    Consistent with other generic types: nice!
+                    Can not name arguments. :(
+                        Make an exception to the rule for this?
+                    ReturnType does not quite fit: Why first argument?  Put it last instead?
+                    Again: anonymous delegate type.
+
+                "alias" syntax:
+                    "alias MyDelegateType as delegate(arg as type, ..) as ReturnType"
+                    Special case: Creates a named delegate type accessable by other .NET assemblies.
+
+            Events
+
+                "MyEvent as event(MyDelegateType)"
+                    Looks like variable declaration: good.
+                    Has to implicitly create an event type to interoperate.
+
+                "alias" syntax:
+                    "alias MyEvent as event(MyDelegateType)"
+                    Looks like other generic types: good.
+                    Special case: creates named delegate type that other .NET assemblies can use.
+
+        Type modifiers
+
+
+            Method modifiers
+                abstract
+                    Provides no body.  Must be overridden in subclasses unless they are themselves abstract.
+                override
+                    Must override a method in a base class, else it is a compile error.
+                virtual
+                    Can be overridden by subclasses.  All methods are virtual by default.
+                sealed
+                    Cannot be overridden at all.
+
+    Access modifiers
+        public
+        private
+        protected
+        package
+            Allows access only within the namespace containing the declaration.
+            Does not include parent or child namespaces.
+
+        Combinations:
+            If two consecutive access modifiers are specified, the first specifies read privileges, the second specifies write priveleges.
+            More than two is an error.
+
+            Is this too magical?
+
+            "public private"
+                Can be read anywhere, written only by the class.
+                Handy for attributes, as no getter/setter is needed.
+            "protected private"
+                Can be read by subclasses, written only by the class.
+            "public protected"
+                Can be read anywhere, written by subclasses.
+            "private public"
+                Can be read only by the class, but written everywhere. (utterly useless, but there regardless)
+
+    Attributes
+
+        Need a prefix?
+            """
+            var x as int
+            var y
+            var z = x+y
+            """
+
+        "name as T"
+            class attributes could get dangerously terse
+                "x;y;z;"
+
+        Attribute modifiers
+            "params"
+                Only valid in method arguments: variadic function arguments are placed into the parameter.
+                This parameter's type must be either array(T) or dict(string, T) for any T
+
+            "static"
+                Denotes an attribute shared across all class instances.
+
+            "const"
+                Must be assigned a value at the point of definition, or in a class constructor.
+                Can only ever be assigned a value once.
+
+    Functions
+
+        Use "def" keyword.
+
+        """
+        def Name(arg as type, arg as type, ...) as returnType:
+            statement
+            statement
+            ...
+        """
+
+        """
+        def VariadicFunc(first as string, params rest as array(string)):
+            ...
+        """
+
+        Closures
+            TODO
+
+        Generators
+            TODO
+
+        Contracts
+            TODO
+
+        Overloading
+            Big fat TODO.  Lots and lots of language complexity arises from the fact that a single fully-qualified name can be used to refer to more than one function.
+            Maybe only support this in the form of a "mega-alias", which aliases many differently named symbols onto a single symbol. (in this way, the overload is a single entity, but the methods themselves are all separate from it)
+
+    Statements
+
+        Null statement
+            "pass"
+            Does nothing, but is sometimes needed syntactically, as an indented block must contain at least one statement.
+            """
+            class Foo:
+                pass # empty class
+            """
+
+        Local variables
+            "Create on first assignment" has issues, but is worth the price.
+                Always has scope of the innermost function, not block.
+
+            Also allow explicit declaration of local variables
+                "var x as int"
+                Allows locals to be local to a block, instead of the whole function.
+
+                eg
+                """
+                def example():
+
+                    if this_example_is_terrible:
+                        foo = something()           # implicitly declare foo with function scope
+                        var baz = something_else()  # baz's scope is limited to the for loop
+
+                    return foo                      # OK: foo still in scope
+                    return baz                      # No: baz no longer exists
+                """
+
+            Illegal to shadow a local in an outer scope.
+            No problem with two locals that have the same name if their scopes do not overlap.
+
+        Assignment
+            Nothing amazing
+            Ape *= syntax from C and friends.
+            """
+            x = y
+            x += y
+            x *= y
+            etc
+            """
+
+
+        Compound statements
+            Simple test
+                """
+                if x == y:
+                    ...
+                else if a == b:
+                    ...
+                elif a == b: # for compatibility with Python
+                    ...
+                else:
+                    ...
+                """
+
+            looping
+                Test at start
+                    """
+                    while good:
+                        ...
+                    """
+
+            traversing a sequence
+                """
+                for iterator in sequence:
+                    System.out.println(iterator)
+                    ...
+                """
+
+            object access shortcut
+                Do we need this?  Do we want it?
+                """
+                with object:
+                    .expr           # equivalent to object.expr
+                """
+
+            auto-cleanup shortcut
+                "x as type = auto ClassType()"
+                    auto keyword replaces 'new'
+                    When the reference loses scope, it is disposed
+                "auto x as type = new ClassType()"
+                    What D does.
+                    Semantics are straightforward.
+
+        Exceptions
+            try:
+                pass
+            except e as Exception:      # type will always be required
+                pass
+            except Exception:           # catch, do not bind name to exception
+                pass
+            except a as InvalidOperation, InvalidCast, NullReferenceException:  # a is of type Exception, catches any of the types listed
+                raise new FooException(a.ToString())    # throw an exception
+            except InvalidOperation, NullReference:     # catch any one of a number of exceptions, don't attach a name
+                raise                                   # no arg: throw the exception that was caught
+            except:                     # no type: catch anything at all
+                ...                     # can use unqualified 'raise' to reraise
+            finally:
+                # do this no matter what when the block exits
+                statements
+            else:
+                # like Python: do this if the try block finished without raising an exception.
+                statements
+
+    Expressions
+
+        Arithmetic
+            "+,-,*,/,%" - nothing amazing at all
+
+        Bitwise
+            same old, same old
+            "&, |, ^, <<, >>, >>>"
+            "!" - bitwise 'not'
+
+        Logical
+            "<, >, <=, >=, ==, !="
+
+            "and, or"
+            "not"
+            "is"
+                object identity test
+            "is not"
+                'digraph' keyword
+                same as "not (a is b)"
+            "cmp"
+                all-in-one: yields negative, zero, or positive integer based on the relationship between its arguments.
+                eg "a cmp b"
+
+        Containers
+            Same old
+            index: "[x]"
+            slice: "[x:y]"
+            "in, not in" - same as Python.  Not broken, do not fix.
+
+        Type casting
+            obvious
+
+            "expr as T"
+
+            Binds tightly.  Use parenths for anything complicated.
+
+            """
+            a.foo() as int                      # cast does not bind as tightly as the dot or application operators
+            a + b as float                      # Same as "a + (b as float)"
+            not x as float                      # Same as "not (x as float)"
+            """
+
+        Allocation
+            Need 'new' keyword to create instances?
+
+            "x as IFoo = new Baz"
+                No parenths if no constructor args?
+
+        Deallocation
+            Not ordinarily necessary.
+
+            "delete x"
+
+            Calls destructor, invalidates the reference, etc etc.
+            Exact behaviour depends on platform.
+                On .NET classes, simple call to Dispose method.
+
+            If live references to the object exist, the behaviour is *undefined*.  Beware etc etc.
+            "delete null" is always safe.
+
+        Disposal
+            Not quite the same as deallocation: cleans up the object, but does not necessarily deallocate.
+            Object references still sustain the now-dead object, and can use it normally, because the destructor has not yet run.
+
+            dispose() method, like C#?
+
+            "dispose object;"
+
+            Is syntax necessary for this at all?
+
+    Interfaces
+
+        interface IFoo:
+            def A(arg as int) as double
+
+        interface IBar(IFoo):                   # interfaces can extend each other
+            pass
+
+    Classes
+
+        class Baz:                              # no superclasses or interfaces: extends Object
+            ...
+
+        abstract class AbstractFoo(IFoo):       # implements IFoo, must be subclassed
+            # attributes
+            var x as int                        # public by default
+            public var y as float               # explicitly public
+            private static var z as array(string)
+
+            # explicitly qualify the interface we are implementing
+            # 'override'?
+            def IFoo.A(arg as type) as type:    # think about deducing arg/return types from interface
+                ...
+
+            abstract def B() as void            # no impl, no colon
+
+        Constructors
+            TODO
+
+        Constructor overloading
+            TODO
+
+        Destructors
+            TODO
+
+        # maybe worthwhile:
+        module Thingie:                         # shorthand for a sealed class with a private constructor.
+            ...                                 # contents are implicitly static attributes of the class.
+
+        Operator overloading
+            TODO
+
+        Properties
+            TODO
+
+        "ref"/"out" arguments
+            TODO
+
+        Class modifiers
+            abstract
+                Cannot be instantiated.  Must be subclassed.
+            sealed
+                Cannot be subclassed.
+
+
+    Structs
+
+        Same as classes, except
+            cannot inherit
+            cannot be inherited
+            ctor/dtor?
+            C# structs can implement interfaces. :o
+
+    Aliases
+
+        Vague notion: create a new name for an existing symbol.
+
+        What sort of symbols can be aliased?  Types?  Static methods?
+
+        "alias MyAlias as System.Console"
+            No: "as" already has established meaning.
+            Could be confusing: "alias AliasName as T" vs "alias T as AliasName"
+
+        "alias MyAlias = System.Console"
+            Current favourite.
+            Crystal clear: looks and works just like assignment.
+            Easy to get right the first time.
+            Somewhat asymmetric with everything else.
+
+        "MyAlias = System.Console"
+            Pythonic if nothing else.
+            Precludes creation of function-local aliases: conflicts with normal assignment.
+
+    Namespaces
+        Behave like C++: can be re-opened and added to.
+
+        Creating
+            In almost all cases, everything in a source file is placed in the same namespace.
+
+            """
+            namespace X.Y.Z
+            # no indent!
+            ...
+            """
+                Only one per source file.
+                Must be before any declarations.
+
+            """
+            with namespace X.Y.Z:
+                # we indent if we do this
+                ...
+            """
+
+            """
+            with namespace X:
+                with namespace Y.Z:
+                    # same as previous
+                    ...
+            """
+
+        "import X.Y.Z"
+            Mass import all symbols from X.Y.Z into current scope.
+            Has nothing to do with the filesystem.
+
+    Generics
+        Lightweight.  .NET style because I am an idiot and am not the least bit confident that I can implement something as complex as C++ templates.
+
+            Keep the future in mind.  Be willing to deprecate this in
+            favour of something with real power, should it present itself.
+
+        "generic" declarations precede the method
+
+        "generic T"
+        "generic T as struct"                               # constrain to value types
+        "generic T as class"                                # constrain to reference types
+        "generic T as IFace, IFace, ..."                    # constrain to interfaces
+
+        Maybe rip off how XLR does it.
+            generic Ordered as type:
+                # Given two Ordered instances A and B, a type is Ordered if they can be compared with < and the result is a boolean
+                A as Ordered
+                B as Ordered
+                b as boolean = A < B
+
+        blank/comment lines are okay, but the next non-generic statement must be a declaration.
+        Changes in indentation are also illegal.
+        """
+        generic InputType as IClonable
+        generic OutputType
+        def Method(src as InputType) as OutputType
+            ...
+        """
+            Sets a prescedent for prefixy things.
+            Generalization of static/final/public/private?
+            Parsing might get too funky.
+                """
+                public
+                static
+                generic T as class
+                def Foo(t as T) as void
+                    ...
+                """
+
+        Generic methods
+
+            Defining
+                """
+                generic T as class
+                def Map(source as array(T), function as delegate(t as T) as T)
+                """
+                Sidenote: delegate syntax looks gross in the above example.
+
+            Calling
+                "Map of int(source, myFunc)"
+                Kinda clumsy.
+                Deducing the generic type would help a lot.
+
+        Generic classes
+            """
+            generic T
+            class LinkedList of T (IList of T)
+                ...
+            """
+            Base class syntax and generic arg collide.
+                Still better than "class LinkedList(IList of T) of T"
+
+            Omit generic?
+                """
+                generic T
+                class LinkedList(IList of T)
+                """
+                Looks nice, but may have consequences.
+
+    Macros
+        TODO
+        Uber, like Nemerle, except not cryptic.
+
+        Simple concept:
+            recieve a parse tree, produce a transformed parse tree.
+            Syntax for quoting?
+                Syntax sugar for creating a parse tree from a bit of code.
+                    For instance, make "foo = quote(a + b - c)" equivalent to
+                        """
+                        foo = new AddExpression(
+                            new VariableReference("a"),
+                            new SubtractExpression(
+                                new VariableReference("b"),
+                                new VariableReference("c")
+                            )
+                        )
+                        """
+
+                Unquoting: injecting symbols into quoted code.
+
+            Macros return code, which replaces the macro in the AST.
+
+        Work on a specific compile phase:
+            parse
+            pre-analysis
+            post-analysis (pre code generation)
+
+        Determine how macros are allowed to transform syntax.
+            Flexibility is awesome, but try to keep it regular enough that other code tools can easily keep up.
+                Avoid what happened to Perl: 'Only perl can parse Perl'
+
+            Allow a number of pre-set structures:
+                Function call.
+                Function call followed by block. (parenths optional if only two arguments)
+
+                    eg
+                        """
+                        MyMacro expr:
+                            block
+                        """
+                    or
+                        """
+                        MyMacro (expr, expr2, ...):
+                            block
+                        """
+
+                Keyword followed by block
+                    """
+                    eg
+                    MyMacro:
+                        block
+                    """
+
+                Infix binary operator. (possibly dangerous o_o)
+                    """
+                    dot = a MyMacro b
+                    """
+
+                Prefix unary operator.
+                    """
+                    a as float
+                    s = sin a  # probably better as a function, but I needed an example.
+                    """
+
+                Type. (macro executes and returns a data type--possibly generated on the fly)
+                    Must be assumed to be side-effect free?  Otherwise different invocations of the same type
+                        macro may not be evaluate to the same type.
+                    "thingie as MyMacro(arg, arg2, ...)"
+
+            General syntax for describing syntax, so that other forms can be allowed in the future.
+
+Longish example:
+
+    namespace NineTest.WordCounter
+
+    # Let's pretend that we're targetting .NET
+    import System
+    import System.IO
+
+    # A little struct to hold the results of a count.
+    # Structs are value types, just like in C#.
+    struct CountResults:
+        line_count as int
+        word_count as int
+        char_count as int
+
+    def Count(source as string) as CountResults:
+        result as CountResults
+        inWord = false
+
+        result.char_count = source.Length
+
+        for c in source:
+            # numbers are "words" too
+            if c.IsLetter or c.IsNumber:
+                if not inWord:
+                    result.word_count += 1
+                    inWord = true
+            else:
+                inWord = false
+
+                if c == '\n':
+                    result.line_count += 1
+
+        return result
+
+    # Application entry point.
+    def Main(args as array of string) as void:
+        headings = ['Name', 'Lines', 'Words', 'Chars']
+        Console.WriteLine(string.Join("\t", headings))
+
+        for name in args:
+            # 'auto' works like new, except that the newly created object will automatically
+            # be disposed when its enclosing scope is done with.
+            with auto StreamReader(name):
+                result = Count(.ReadToEnd())
+
+            # declare some local variables: their types are deduced by the rhs expression.
+            lines = result.line_count
+            words = result.word_count
+            chars = result.char_count
+
+            # plain old .NET mojo
+            Console.WriteLine("{0}\t{1}\t{2}\t{3}", name, lines, words, chars)
+
+Milestone 1
+    Statements at module scope.
+    Single module.
+    Handle integral types and strings
+    While loops.
+    Hard-coded predefined functions for simple I/O.
+    Run "Hello World", and some simple algorithms: Ackermann's function, factorial, Fibonacci sequences
+
+Milestone 2
+    Functions
+    Run word count example above. (perhaps modified if .NET is not the target platform)
+    Run Sieve of Eratosthenes
+
+Milestone 3
+    "struct" types. (no classes yet)
+    Basic list functionality. (create, push/pop/mutate, iterate)
+    Connect to other .NET code.
+    Be able to run an OpenGL demo.

@@ -1,0 +1,41 @@
+var width = 640
+var height = 480
+
+var frame = SDL.SetVideoMode(width, height, 32, SDL.OPENGL)
+SDL.SetCaption("onedown.9")
+
+var aspectRatio = 4.0 / 3.0
+
+GL.MatrixMode(GL.PROJECTION)
+GL.LoadIdentity()
+GLU.Perspective(45.0, aspectRatio, 0.1, 100.0)
+
+GL.MatrixMode(GL.MODELVIEW)
+GL.LoadIdentity()
+
+GL.Enable(GL.DEPTH_TEST)
+GL.DepthFunc(GL.LEQUAL)
+GL.ClearDepth(1.0)
+GL.ClearColor(0.0, 0.0, 0.4, 0.0)
+
+var done = false
+
+var qVerts = array(Vertex, 4)
+qVerts[0] = Vertex.new(0.0,0.0,0.0)
+qVerts[1] = Vertex.new(0.0,1.0,0.0)
+qVerts[2] = Vertex.new(1.0,1.0,0.0)
+qVerts[3] = Vertex.new(1.0,0.0,0.0)
+
+var square = Quad.new(qVerts)
+
+while not done:
+    GL.Clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT)
+    
+    square.Draw()
+    
+    GL.SwapBuffers()
+
+    var evt = SDL.PollEvent()
+
+    if evt.Type == SDL.QUIT:
+        done = true

@@ -1,0 +1,54 @@
+
+# Quad and vertex classes
+# For the cube demo.
+# Andy Friesen
+# 22 March 2005
+
+class Vertex:
+    var x as float
+    var y as float
+    var z as float
+
+    var r as float
+    var g as float
+    var b as float
+
+    def ctor(x as float, y as float, z as float):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    static def New(x as float, y as float, z as float) as Vertex:
+        var v = Vertex()
+        v.x = x
+        v.y = y
+        v.z = z
+        return v
+
+    def Color(r as float, g as float, b as float) as Vertex:
+        self.r = r
+        self.g = g
+        self.b = b
+        return self
+
+    def Draw():
+        GL.Color3f(self.r, self.g, self.b)
+        GL.Vertex3f(self.x, self.y, self.z)
+
+class Quad:
+    var points as array(Vertex)
+
+    static def New(v1 as Vertex, v2 as Vertex, v3 as Vertex, v4 as Vertex) as Quad:
+        var q = Quad()
+        q.points = array(Vertex, 4)
+        q.points[0] = v1
+        q.points[1] = v2
+        q.points[2] = v3
+        q.points[3] = v4
+        return q
+
+    def Draw():
+        var i = 0
+        while i < self.points.Length:
+            self.points[i].Draw()
+            i += 1
