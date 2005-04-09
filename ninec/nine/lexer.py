@@ -247,7 +247,7 @@ def _lexComment(source, pos):
 
 def _findNewLines(source):
     # linear indeces of every newline in the program
-    newLines = [0]
+    newLines = []
     pos = 0
     while True:
         pos = source.find('\n', pos)

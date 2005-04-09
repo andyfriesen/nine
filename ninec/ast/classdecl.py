@@ -80,6 +80,7 @@ class ClassDecl(Type):
 
         self.flags = flags
 
+        self.__wasChecked = False # used by semantic() so it's only done once
         self.__declsBuilt = False # Used by emitDeclaration to know if it's been called already or not.
 
     def parse(tokens):
@@ -161,7 +162,7 @@ class ClassDecl(Type):
                 if self.baseClass is None:
                     self.baseClass = base
 
-                else:
+                elif self.baseClass is not base:
                     raise error.OverrideError(self.position, 'Multiple inheritance is not yet supported')
 
                 if base.isSubClass(self):
@@ -201,6 +202,9 @@ class ClassDecl(Type):
         # HACK: check scope.symbols directly, because we do not care if outer
         # scopes have a symbol with the same name, only if two symbols have
         # the same name, and are at the same level.
+
+        if self.__wasChecked: return self
+        self.__wasChecked = True
 
         if scope.symbols.get(self.name, self) is not self:
             raise error.NameError, "A symbol named '%s' already exists in the current scope." % self.name

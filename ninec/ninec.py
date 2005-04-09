@@ -33,9 +33,8 @@ except getopt.GetoptError, e:
 
 from nine.driver import Driver
 
-#sourceName = args[0] # FIXME
 sources = args
-outputName = 'ninec_output'
+outputName = '9out'
 references = []
 
 the_driver = Driver()

@@ -3,6 +3,8 @@ from nine.token import BEGIN_BLOCK, END_BLOCK, END_OF_FILE
 
 from nine.scope import Scope
 
+from nine import log
+
 class BlockStatement(object):
     def __init__(self, children=None):
         self.children = children or []
@@ -30,8 +32,10 @@ class BlockStatement(object):
         localScope = Scope(parent=scope)
 
         newBody = []
+
         for child in self.children:
             newBody.append(child.semantic(localScope))
+            log.write('semantic', 'BlockStatement.semantic:\n\t%r\n\t%r' % (child, newBody[-1]))
 
         return BlockStatement(newBody)
 

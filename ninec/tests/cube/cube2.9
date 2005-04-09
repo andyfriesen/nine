@@ -52,10 +52,9 @@ GL.DepthFunc(GL.LEQUAL)
 GL.ClearDepth(1.0)
 GL.ClearColor(0.0, 0.0, 0.4, 0.0)
 
-var done = false
 var rot = 0.0
 
-while not done:
+while true:
     GL.Clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT)
 
     GL.LoadIdentity()
@@ -65,10 +64,8 @@ while not done:
 
     GL.Begin(GL.QUADS)
 
-    var i = 0
-    while i < cube.Length:
-        cube[i].Draw()
-        i += 1
+    for face in cube:
+        face.Draw()
 
     GL.End()
 
@@ -78,4 +75,3 @@ while not done:
 
     if evt.Type == SDL.QUIT:
         break
-        #done = true

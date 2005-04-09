@@ -1,17 +1,37 @@
 import unittest
+
+from ast.breakstatement import BreakStatement
+
 from nine import token
 from nine.driver import Driver
-from nine.lexer import lex
-from nine.parser import parse
-from nine.semantic import semantic
 
-from nine.error import SyntaxError, TypeError
-from ast.whilestatement import WhileStatement
+from nine import error
 
 from tests import util
 
 class BreakTest(unittest.TestCase):
-    def testCompileString(self):
+    def testParse(self):
+        result = util.parseProgram(util.source('''
+            while true:
+                break
+        '''))
+
+        self.assertEqual(1, len(result))
+
+        stmt = result[0]
+        self.failUnless(isinstance(stmt.block.children[0], BreakStatement), stmt.block.children[0])
+
+    def testOuterBreak(self):
+        program = util.source('''
+            break
+        ''')
+
+        self.assertRaises(
+            error.SyntaxError,
+            lambda: util.semanticProgram(program)
+        )
+
+    def testRun(self):
         program = util.source('''
             print "You should see one 9"
             var x = 5
@@ -23,13 +43,6 @@ class BreakTest(unittest.TestCase):
         ''')
 
         util.runProgram('break_test', program)
-
-    def testGoodSemantic(self):
-        result = semantic(parse(lex("while true:\n    break\n")))
-        self.failUnlessEqual(len(result), 1)
-
-        stmt = result[0]
-        self.failUnless(isinstance(stmt, WhileStatement), stmt)
 
 if __name__ == '__main__':
     unittest.main()

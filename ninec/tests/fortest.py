@@ -28,13 +28,26 @@ class ForTest(unittest.TestCase):
                 print c
         '''))
 
+    def testIntArray(self):
+        util.runProgram('for_int_array_test', util.source('''
+            var a = array(int, 4)
+            a[0] = 1
+            a[1] = 1
+            a[2] = 2
+            a[3] = 3
+
+            for c in a:
+                print c
+        '''))
+
     def testUserClassArray(self):
         util.runProgram('for_user_class_array_test', util.source('''
             class Test:
                 static var instances as array(Test)
+                static var numInstances as int
 
                 def ctor():
-                    Test.instances += 1
+                    Test.numInstances += 1
 
                 def printAll():
                     for i in Test.instances:
@@ -52,7 +65,7 @@ class ForTest(unittest.TestCase):
 
                 def Draw():
                     for v in self.verts:
-                        (v as Vertex).Draw()
+                        v.Draw()
         '''))
 
 if __name__ == '__main__':

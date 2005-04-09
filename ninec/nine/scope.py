@@ -9,10 +9,13 @@ class Scope(object):
         self.klass = None # The type of the scope's enclosing class
         self.this = None # A reference to the current object (if applicable)
 
+        self.innerLoop = None # A reference to the innermost while or for loop (used by the break and continue statements)
+
         if parent is not None:
             self.func = func or parent.func
             self.klass = parent.klass
             self.this = parent.this
+            self.innerLoop = parent.innerLoop
 
     def __getitem__(self, key):
         return self.resolveSymbol(key)

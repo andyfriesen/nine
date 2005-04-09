@@ -88,3 +88,7 @@ class CastExpression(object):
             else:
                 #cast to a class
                 gen.ilGen.Emit(gen.opCodes.Castclass, ilType)
+
+    def __repr__(self):
+        return '(%s as %s)' % (self.arg, self.type)
+

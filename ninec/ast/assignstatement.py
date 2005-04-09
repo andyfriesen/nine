@@ -66,7 +66,7 @@ class AssignStatement(object):
         # TODO: if ltype is None: lhs.setType(rtype) or whatever
 
         if ltype != rtype and not ltype.isDescendant(rtype):
-            raise error.TypeError, 'Cannot convert expression of type %s to %s' % (rtype, ltype)
+            raise error.TypeError, 'Cannot convert expression %s of type %s to %s' % (rhs, rtype, ltype)
 
         return AssignStatement(lhs, rhs)
 

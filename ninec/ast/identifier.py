@@ -70,7 +70,7 @@ class Identifier(object):
             return sym
 
     def getType(self):
-        assert False, 'Internal badness: asked to retrieve the type of a symbol which has not yet been resolved!!'
+        assert False, self
 
     def emitCode(self, gen):
         assert False, 'Internal badness: asked to emitCode for unresolved symbol %r' % self.name

@@ -2,6 +2,7 @@
 from nine import error
 from nine import util
 from ast import vardecl
+from nine import log
 
 from CLR import System
 
@@ -54,6 +55,67 @@ class ForStatement(object):
     parse = staticmethod(parse)
 
     def semantic(self, scope):
+        '''
+        Translate
+
+            for iterator as T in y:
+                stmts
+
+        to
+
+            var _e = y.GetEnumerator()
+            while _e.MoveNext():
+                var iterator = _e.Current as T
+                stmts
+        '''
+
+        from ast.blockstatement import BlockStatement
+        from ast.whilestatement import WhileStatement
+        from ast.assignstatement import AssignStatement
+        from ast.castexpression import CastExpression
+        from ast.arraytype import ArrayType
+        from ast.vardecl import VarDecl
+        from nine.scope import Scope
+
+        IEnumerator = util.getNineType(System.Collections.IEnumerator)
+        Object = util.getNineType(System.Object)
+        Boolean = util.getNineType(System.Boolean)
+
+        elementType = Object
+
+        sequence = self.sequence.semantic(scope)
+        seqType = sequence.getType()
+
+        if isinstance(seqType, ArrayType):
+            elementType = seqType.arrayType
+        elif self.iterator.type is not None:
+            elementType = self.iterator.type
+
+        enumerator = VarDecl('`hidden for-loop enumerator`', self.position, IEnumerator,
+            initializer=seqType.getMember(sequence, 'GetEnumerator').apply(())
+        )
+
+        miniScope = Scope(parent=scope)
+
+        enumerator = enumerator.semantic(miniScope)
+
+        # var iterator = enumerator.get_Current() as ElementType
+        assert self.iterator.initializer is None, self
+        self.iterator.initializer = CastExpression(self.position, IEnumerator.getMember(enumerator, 'get_Current').apply(()), elementType)
+
+        return BlockStatement((
+            enumerator,
+            WhileStatement(
+                IEnumerator.getMember(enumerator, 'MoveNext').apply(()),
+
+                BlockStatement((
+                    self.iterator,
+                    self.body,
+                ))
+            )
+        )).semantic(miniScope)
+
+    def _old_semantic(self, scope):
         self.iterator.type = util.getNineType(System.Object)
         iterator = self.iterator.semantic(scope)
         iterator = vardecl._LocalVar(iterator.name, iterator.position, iterator.type)
@@ -64,7 +126,7 @@ class ForStatement(object):
 
         return ForStatement(self.position, iterator, sequence, body)
 
-    def emitCode(self, gen):
+    def _old_emitCode(self, gen):
         self.iterator.emitCode(gen)
 
         IEnumerator = util.getNineType(System.Collections.IEnumerator)

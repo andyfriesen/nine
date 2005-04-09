@@ -25,13 +25,18 @@ class WhileStatement(object):
     parse = staticmethod(parse)
 
     def semantic(self, scope):
+        from nine.scope import Scope
+
         arg = self.arg.semantic(scope)
         t = arg.getType()
 
-        if t is not vartypes.BooleanType:
+        if t != vartypes.BooleanType:
             raise TypeError, "While condition must be of type boolean, not %r" % t
 
-        block = self.block.semantic(scope)
+        childScope = Scope(parent=scope)
+        childScope.innerLoop = self
+
+        block = self.block.semantic(childScope)
 
         return WhileStatement(arg, block)
 
@@ -41,36 +46,19 @@ class WhileStatement(object):
         from ast.breakstatement import BreakStatement
         from ast.continuestatement import ContinueStatement
 
-        start = gen.ilGen.DefineLabel()
-        loop = gen.ilGen.DefineLabel()
-        end = gen.ilGen.DefineLabel()
-        breakFlag = False
+        startLabel = gen.ilGen.DefineLabel()
+        loopLabel = gen.ilGen.DefineLabel()
+        endLabel = gen.ilGen.DefineLabel()
 
-        gen.ilGen.Emit(gen.opCodes.Br, start)
-        gen.ilGen.MarkLabel(loop)
+        gen.ilGen.Emit(gen.opCodes.Br, startLabel)
+        gen.ilGen.MarkLabel(loopLabel)
 
-        subGen = CodeGenerator(gen)
-        subGen.breakLabel = end
-        subGen.continueLabel = loop
+        miniGen = CodeGenerator(gen)
+        miniGen.breakLabel = endLabel
+        miniGen.continueLabel = startLabel
+        self.block.emitCode(miniGen)
 
-
-        self.block.emitCode(subGen)
-
-        """#FIXME: This is a bad way of doing things
-        #   but I cannot think of another way for continue and break statements
-        #   to have access to label references
-        for child in self.block.children:
-            if isinstance(child, BreakStatement):
-                breakFlag = True
-                gen.ilGen.Emit(gen.opCodes.Br, end)
-            elif isinstance(child, ContinueStatement):
-                gen.ilGen.Emit(gen.opCodes.Br, start)
-            else:
-                child.emitCode(gen)
-
-        #self.block.emitCode(gen)"""
-
-        gen.ilGen.MarkLabel(start)
+        gen.ilGen.MarkLabel(startLabel)
         self.arg.emitLoad(gen)
-        gen.ilGen.Emit(gen.opCodes.Brtrue, loop)
-        gen.ilGen.MarkLabel(end)
+        gen.ilGen.Emit(gen.opCodes.Brtrue, loopLabel)
+        gen.ilGen.MarkLabel(endLabel)

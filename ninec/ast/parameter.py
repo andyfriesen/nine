@@ -10,9 +10,7 @@ class Parameter(VarDecl):
     '''
 
     def __init__(self, position, name, type):
-        self.name = name
-        self.position = position
-        self.type = type
+        super(Parameter, self).__init__(name, position, type)
         self.index = None # set by FunctionDecl.semantic()
 
     def parse(tokens):

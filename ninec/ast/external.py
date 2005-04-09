@@ -96,6 +96,8 @@ class ExternalType(vartypes.Type):
 
         args = util.toTypedArray(System.Type, [util.getNetType(t) for t in paramList])
 
+        assert None not in args, paramList
+
         methodInfo = self.builder.GetMethod(name, args)
         if methodInfo is None: return None
 
@@ -356,3 +358,6 @@ class ExternalMethodCall(object):
             gen.ilGen.Emit(gen.opCodes.Callvirt, self.methodInfo)
         else:
             gen.ilGen.Emit(gen.opCodes.Call, self.methodInfo)
+
+    def __repr__(self):
+        return '%s . %s %r' % (self.this, self.methodInfo.Name, self.args)

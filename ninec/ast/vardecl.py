@@ -76,7 +76,7 @@ class VarDecl(object):
 
         if self.name in scope and scope[self.name] is not self:
             # TODO: better error message, especially if the symbol is already defined, but it an outer scope.
-            raise error.SyntaxError, 'Duplicate identifier "%s" declared at %r' % (self.name, scope[self.name].position)
+            raise error.SyntaxError, 'Variable declaration "%s" conflicts with %r declared at %r' % (self.name, scope[self.name], scope[self.name].position)
 
         initializer = self.initializer
         type = self.type
@@ -130,7 +130,10 @@ class VarDecl(object):
         assert False, '%r does not subclass VarDecl.emitAssign!' % self
 
     def __repr__(self):
-        return '<%s %s>' % (type(self).__name__, self.name)
+        if self.initializer is not None:
+            return '<%s %s = %s>' % (type(self).__name__, self.name, self.initializer)
+        else:
+            return '<%s %s>' % (type(self).__name__, self.name)
 
 class _LocalVar(VarDecl):
     def semantic(self, scope):

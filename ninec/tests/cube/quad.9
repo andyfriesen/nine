@@ -48,10 +48,5 @@ class Quad:
         return q
 
     def Draw():
-        var i = 0
-        while i < self.points.Length:
-            self.points[i].Draw()
-            i += 1
-
-        #for p in self.points:
-        #    (p as Vertex).Draw()
+        for p in self.points:
+            p.Draw()
