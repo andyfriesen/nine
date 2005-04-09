@@ -31,7 +31,7 @@ class ClassBody(object):
             )
 
             if decl is None:
-                raise error.SyntaxError, 'Expected end block, variable or class declaration, or pass statement.  Got %r' % tokens.peek()
+                raise error.SyntaxError(tokens.peek().position, 'Expected end block, variable or class declaration, or pass statement.  Got %r' % tokens.peek())
 
             while tokens.peek() is token.END_OF_STATEMENT:
                 tokens.getNext()

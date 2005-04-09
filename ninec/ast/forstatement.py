@@ -91,7 +91,7 @@ class ForStatement(object):
         elif self.iterator.type is not None:
             elementType = self.iterator.type
 
-        enumerator = VarDecl('`hidden for-loop enumerator`', self.position, IEnumerator,
+        enumerator = VarDecl('$$$ secret enumerator 0x%08X $$$' % id(self), self.position, IEnumerator,
             initializer=seqType.getMember(sequence, 'GetEnumerator').apply(())
         )
 

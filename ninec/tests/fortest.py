@@ -68,5 +68,14 @@ class ForTest(unittest.TestCase):
                         v.Draw()
         '''))
 
+    def testNestedLoops(self):
+        util.runProgram('for_nest_test', util.source('''
+            var x = array(int, 5)
+
+            for a in x:
+                for b in x:
+                    print a + b
+        '''))
+
 if __name__ == '__main__':
     unittest.main()

@@ -309,7 +309,7 @@ def lex(source, fileName='<unknown>'):
                 # 3: if indentation is less than the previous line, make sure it's a dedent to a previous indentation amount,
                 #    and insert END_BLOCKS for each indented block that was ended.
 
-                if tokens and tokens[-1] is not END_OF_STATEMENT:
+                if tokens and tokens[-1] not in (BEGIN_BLOCK, END_OF_STATEMENT):
                     # Don't throw these things in without any thought at all.
                     # Redundant eos tokens is irritating.
 
@@ -341,14 +341,14 @@ def lex(source, fileName='<unknown>'):
                 token, pos = _lexIdentifier(source, pos)
             except error.CodeError, e:
                 e.line, e.file = (curLine, fileName)
-                raise e
+                raise
 
         elif c.isdigit():
             try:
                 token, pos = _lexNumber(source, pos)
             except error.CodeError, e:
                 e.line, e.file = (curLine, fileName)
-                raise e
+                raise
 
         elif c == '\'' or c == '"':
             # String literal
@@ -356,14 +356,14 @@ def lex(source, fileName='<unknown>'):
                 token, pos = _lexStringLiteral(source, pos)
             except error.CodeError, e:
                 e.line, e.file = (curLine, fileName)
-                raise e
+                raise
 
         elif c == '#':
             try:
                 comment, pos = _lexComment(source, pos)
             except error.CodeError, e:
                 e.line, e.file = (curLine, fileName)
-                raise e
+                raise
             continue
 
         else:
