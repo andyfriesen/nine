@@ -24,7 +24,13 @@ def typeToType(t):
 
     fullName = moduleName[4:] + '.' + t.__name__
 
-    assembly = System.Reflection.Assembly.GetAssembly(t)
+    # HACK: PythonNet does some wizardry with System.Exception, and it breaks our code.
+    if issubclass(t, System.Exception):
+        assembly = System.Reflection.Assembly.GetAssembly(t._class)
+
+    else:
+        assembly = System.Reflection.Assembly.GetAssembly(t)
+
     return assembly.GetType(fullName)
 
 def toTypedArray(type, elements):
@@ -44,7 +50,8 @@ def getNineType(theType):
     if isinstance(theType, CLRMeta):
         theType = typeToType(theType)
 
-    if isinstance(theType, System.Type):
+    # all classes from the CLR namespace are .NET classes.
+    if theType.__module__.startswith('CLR'):
         return ExternalType.getNineType(theType)
     elif isinstance(theType, basestring):
         return ExternalType.getNineType(System.Type.GetType(theType))

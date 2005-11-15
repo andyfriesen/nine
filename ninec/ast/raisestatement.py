@@ -23,11 +23,14 @@ class RaiseStatement(object):
     def semantic(self, scope):
         from ast import vartypes
         from nine import error, util
-        from CLR import System
+        import CLR
 
         expr = self.expr.semantic(scope)
 
-        if not util.getNineType(System.Exception).isParentClass(expr.getType()):
+        from ast.external import ExternalType
+
+        #if not util.getNineType(System.Exception).isParentClass(expr.getType()):
+        if not ExternalType.getNineType(util.typeToType(CLR.System.Exception)).isParentClass(expr.getType()):
             raise error.SyntaxError(self.position, "You can only throw object instances which inherit System.Exception, not %r" % expr.getType())
 
         return RaiseStatement(self.position, expr)

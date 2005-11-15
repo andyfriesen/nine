@@ -15,7 +15,7 @@ class RaiseTest(unittest.TestCase):
 
         util.runProgram('raise_test', program, ['mscorlib'])
 
-    def testraiseinstance(self):
+    def testRaiseInstance(self):
         program = util.source('''
             class UserException(System.Exception):
                 pass
