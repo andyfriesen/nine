@@ -56,12 +56,15 @@ class ForStatement(object):
 
     def semantic(self, scope):
         '''
-        Translate
+        Slightly nasty.  We do an AST replacement here, turning the for loop
+        into an equivalent while loop using an IEnumerator instance.
+
+        Long story short, this:
 
             for iterator as T in y:
                 stmts
 
-        to
+        becomes this:
 
             var _e = y.GetEnumerator()
             while _e.MoveNext():
@@ -103,6 +106,9 @@ class ForStatement(object):
         assert self.iterator.initializer is None, self
         self.iterator.initializer = CastExpression(self.position, IEnumerator.getMember(enumerator, 'get_Current').apply(()), elementType)
 
+        # Finally, create the new replacement AST, do the usual semantic
+        # testing on it, and return it as a replacement for our ForStatement
+        # expression.
         return BlockStatement((
             enumerator,
             WhileStatement(
@@ -114,62 +120,3 @@ class ForStatement(object):
                 ))
             )
         )).semantic(miniScope)
-
-    def _old_semantic(self, scope):
-        self.iterator.type = util.getNineType(System.Object)
-        iterator = self.iterator.semantic(scope)
-        iterator = vardecl._LocalVar(iterator.name, iterator.position, iterator.type)
-        scope.symbols[iterator.name] = iterator
-
-        sequence = self.sequence.semantic(scope)
-        body = self.body.semantic(scope)
-
-        return ForStatement(self.position, iterator, sequence, body)
-
-    def _old_emitCode(self, gen):
-        self.iterator.emitCode(gen)
-
-        IEnumerator = util.getNineType(System.Collections.IEnumerator)
-        Object = util.getNineType(System.Object)
-
-        gem = self.sequence.getType().getMethod('GetEnumerator', (), IEnumerator)
-        getEnumeratorMethod = getattr(gem, 'builder', None) or getattr(gem, 'methodInfo', None)
-
-        assert getEnumeratorMethod is not None, self
-
-        enumerator = gen.defineLocal(IEnumerator)
-
-        self.sequence.emitLoad(gen)
-        gen.ilGen.Emit(gen.opCodes.Callvirt, getEnumeratorMethod)
-        gen.ilGen.Emit(gen.opCodes.Stloc, enumerator)
-
-        startLabel = gen.ilGen.DefineLabel()
-        endLabel = gen.ilGen.DefineLabel()
-
-        gen.ilGen.MarkLabel(startLabel)
-
-        # if not enumerator.GetNext(): goto end
-        gnm = IEnumerator.getMethod('MoveNext', (), util.getNineType(System.Boolean))
-        getNextMethod = getattr(gnm, 'builder', None) or getattr(gnm, 'methodInfo', None)
-        gen.ilGen.Emit(gen.opCodes.Ldloc, enumerator)
-        gen.ilGen.Emit(gen.opCodes.Callvirt, getNextMethod)
-        gen.ilGen.Emit(gen.opCodes.Brfalse, endLabel)
-
-        # iterator = enumerator.Current
-        gcm = IEnumerator.getMethod('get_Current', (), Object)
-        getCurrentMethod = getattr(gcm, 'builder', None) or getattr(gcm, 'methodInfo', None)
-        gen.ilGen.Emit(gen.opCodes.Ldloc, enumerator)
-        gen.ilGen.Emit(gen.opCodes.Callvirt, getCurrentMethod)
-        gen.ilGen.Emit(gen.opCodes.Stloc, self.iterator.builder)
-
-        from nine.codegenerator import CodeGenerator
-
-        subGen = CodeGenerator(gen)
-        subGen.breakLabel = endLabel
-        subGen.continueLabel = startLabel
-
-        self.body.emitCode(subGen)
-
-        gen.ilGen.Emit(gen.opCodes.Br, startLabel)
-
-        gen.ilGen.MarkLabel(endLabel)

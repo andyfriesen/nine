@@ -1,3 +1,5 @@
+import sys;sys.path.append('.')
+import ast.external
 
 import unittest
 
@@ -20,9 +22,9 @@ class ExternTest(unittest.TestCase):
         driver.addReference('bin/ClassLibrary1')
         driver._scanAssembly(globalNs, 'bin/ClassLibrary1')
 
-        #fsw = globalNs.symbols['System'].symbols['IO'].symbols['FileSystemWatcher']
         cls = globalNs.symbols['TestClass'].symbols['TestClass']
-        assert isinstance(cls, ExternalType)
+        #assert isinstance(cls, ExternalType)
+        assert cls.external
 
     def testReadAttribute(self):
         program = util.source('''
@@ -123,9 +125,24 @@ class ExternTest(unittest.TestCase):
         toStr = console.getMethod('ToString', (), System.String)
         assert toStr is not None
 
+    def testGetMethods(self):
+        'testGetMethods: ClassDecl.getMethods'
+        driver = Driver()
+        ns = Namespace('')
+        driver._scanAssembly(ns, 'bin/ClassLibrary1')
+
+        class1 = ns.symbols['TestClass'].symbols['TestClass']
+        assert isinstance(class1, ExternalClass)
+
+        names = set([func.name for func in class1.getMethods()])
+        expected = set(['Method', 'Method', 'StaticMethod', 'StaticMethod'])
+
+        # There will be all kinds of other crud in there.  None of it matters, as long as the right names are where they should be.
+        self.failUnless(names > expected, (names, expected))
+
     def testGetCtor(self):
         from ast.parameter import Parameter
-        
+
         driver = Driver()
         ns = Namespace('')
         driver._scanAssembly(ns, 'mscorlib')
@@ -133,13 +150,13 @@ class ExternTest(unittest.TestCase):
         string = ns.symbols['System'].symbols['String']
         int32 = ns.symbols['System'].symbols['Int32']
         char = ns.symbols['System'].symbols['Char']
-        
+
         c1args = (
             Parameter((0,"<>"), 'a', char),
             Parameter((0,"<>"), 'b', int32)
         )
         c2args = (Parameter((0,"<>"), 'b', int32),)
-        
+
         c1 = string.getCtor(c1args)
         c2 = string.getCtor(c2args)
 

@@ -36,3 +36,7 @@ class NameError(CodeError):
 class OverrideError(CodeError):
     'Errors that pertain to definitions of polymorphic classes.'
     pass
+
+class CircularInheritanceError(CodeError):
+    'Errors concerning classes that mutually inherit each other.'
+    pass

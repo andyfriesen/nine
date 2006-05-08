@@ -21,5 +21,14 @@ class DriverTest(unittest.TestCase):
 
         util.runProgram('driver_hello_test', program)
 
+    def testLoadAssembly(self):
+        a = self.driver._loadAssembly('bin/ClassLibrary1')
+        self.failUnless(a is not None, a)
+
+        self.failUnlessRaises(
+            Exception,
+            lambda: self.driver._loadAssembly('does_not_exist')
+        )
+
 if __name__ == '__main__':
     unittest.main()

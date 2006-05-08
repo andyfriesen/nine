@@ -9,6 +9,7 @@ class Type(object):
         self.name = name
         self.__builder = builder
         self.bases = []
+        self.external = False
 
     def getBuilder(self):
         return self.__builder
@@ -116,7 +117,7 @@ class Type(object):
     if not config.DEBUG:
         # Pretty-print type names in release mode
         def __str__(self):
-            return self.name
+            return str(self.name)
 
     def __eq__(self, rhs):
         if not hasattr(rhs, 'builder'): return False

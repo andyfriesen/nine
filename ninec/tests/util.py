@@ -3,6 +3,13 @@
 import os
 import os.path
 
+# HACK: make unit test scripts runnable on their own by making sure the paths work out
+# irrespective of the current working directory.
+import sys
+path, _name = os.path.split(sys.argv[0])
+if path.endswith('tests'):
+    sys.path.append(os.path.join(path, '..'))
+
 def source(program):
     '''Strips leading whitespace from nine.the lines of
     a multiline string.

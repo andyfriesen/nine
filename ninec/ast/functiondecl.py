@@ -111,11 +111,12 @@ class FunctionDecl(object):
     def semantic(self, scope):
         '''Does semantic testing on the function signature and the like.
 
-        It is noteworthy that, unlike most other AST nodes, FunctionDecl
+        It is noteworthy that, like other named AST nodes, FunctionDecl
         mutates itself instead of returning a new instance.  This is important
         because other Identifiers may resolve to this symbol.
 
-        If this instance were to be discarded, those links would be broken.
+        If this instance were to be discarded, those references would be
+        broken.
         '''
 
         # Lots of combinations don't make much sense.  The only one that does is "override sealed".
@@ -251,7 +252,7 @@ class FunctionDecl(object):
             self.returnType.builder,
             params
         )
-        
+
     def getType(self):
         return self.returnType
 

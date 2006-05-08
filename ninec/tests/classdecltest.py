@@ -1,6 +1,8 @@
 
 import unittest
 
+import util
+
 from ast.classdecl import ClassDecl
 
 from nine import error
@@ -65,16 +67,19 @@ class ClassDeclTest(unittest.TestCase):
         )
 
     def testSemantic2(self):
-        util.semanticProgram(
-            util.source('''
-                class NineTest:
-                    var x
-                    def Method():
-                        pass
-            ''')
+        program = util.source('''
+            class NineTest:
+                var x
+                def Method():
+                    pass
+        ''')
+
+        self.failUnlessRaises(
+            error.SyntaxError,
+            lambda: util.semanticProgram(program)
         )
 
-    def testSemantic2(self):
+    def testSemantic3(self):
         program = util.source('''
             class DuplicateName:
                 pass
@@ -198,15 +203,40 @@ class ClassDeclTest(unittest.TestCase):
                 virtual def Method():
                     pass
 
-            #class B_Class(A_Class):
-            #    override def Method():
-            #        pass
+            class B_Class(A_Class):
+                override def Method():
+                    pass
         ''')
 
         result = util.semanticProgram(program).pop()
         assert isinstance(result, ClassDecl)
 
         assert result.getMethod("Method", (), vartypes.VoidType) is not None
+
+    def testGetMethods(self):
+        'testGetMethods: ClassDecl.getMethods'
+        program = util.source('''
+            class AClass:
+                def a():
+                    pass
+
+                def b():
+                    pass
+
+                var c
+
+                def d():
+                    pass
+
+                virtual def e():
+                    pass
+        ''')
+
+        decl = util.parseProgram(program).pop()
+        assert isinstance(decl, ClassDecl)
+
+        names = [func.name for func in decl.getMethods()]
+        self.assertEqual(names, ['a', 'b', 'd', 'e'])
 
     def testVirtualOverrideKeywords1(self):
         program = util.source('''
@@ -269,7 +299,7 @@ class ClassDeclTest(unittest.TestCase):
         )
 
     def testCircularInheritance(self):
-        self.fail("Known to fail.  Has to do with the order in which declarations are semantically tested.  Must fix.")
+        #self.fail("Known to fail.  Has to do with the order in which declarations are semantically tested.  Must fix.")
         program = util.source('''
             class A(B):
                 pass
@@ -279,7 +309,7 @@ class ClassDeclTest(unittest.TestCase):
         ''')
 
         self.assertRaises(
-            error.OverrideError,
+            error.CircularInheritanceError,
             lambda: util.semanticProgram(program)
         )
 

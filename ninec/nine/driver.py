@@ -11,18 +11,39 @@ class Driver(object):
     def addReference(self, assemblyName):
         self.references.append(assemblyName)
 
+    def _loadAssembly(self, name):
+        '''Find, load, and return an assembly, given its name.
+        The name can include path separators, but should not
+        have an extension.
+        '''
+        from CLR import System
+        from CLR.System import Reflection
+        from CLR.System import IO
+        from CLR.System.Reflection import Assembly
+
+        assembly = None
+
+        try:
+            # LoadWithPartialName will get us stuff from the GAC, so try it first.
+            assembly = Assembly.LoadWithPartialName(name)
+
+        except (System.BadImageFormatException, IO.FileNotFoundException, IO.FileLoadException):
+            # LoadFrom is needed to grab assemblies from arbitrary pathnames.  Try it if LoadWithPartialName fails.
+
+            fileName = name + '.dll'
+            assembly = Assembly.LoadFrom(fileName)
+
+        if assembly is None:
+            raise Exception, 'Unable to load assembly %s' % name
+
+        return assembly
+
     def _scanAssembly(self, globalNs, assemblyName):
         from ast.namespace import Namespace
         from ast.vartypes import Type
         from ast.external import ExternalType
 
-        from CLR import System
-        from CLR.System import Reflection
-        from CLR.System.Reflection import Assembly
-
-        assembly = Assembly.LoadWithPartialName(assemblyName)
-        if assembly is None:
-            raise Exception, 'Unable to load assembly %s' % assemblyName
+        assembly = self._loadAssembly(assemblyName)
 
         namespaces = globalNs
 

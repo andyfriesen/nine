@@ -152,13 +152,16 @@ class ClassDecl(Type):
         from ast.interfacedecl import InterfaceDecl
 
         for index, base in enumerate(self.bases):
-            base = base.semantic(scope)
-            self.bases[index] = base
+            self.bases[index] = base.semantic(scope)
+
+        if 0:
+            for base in self.bases:
+                print 'BASE', `base`, '\t', `getattr(base, 'bases', None)`
 
         Object = util.getNineType(System.Object)
 
         for base in self.bases:
-            if Object.isDescendant(base):
+            if isinstance(base, ClassDecl):
                 if self.baseClass is None:
                     self.baseClass = base
 
@@ -166,7 +169,7 @@ class ClassDecl(Type):
                     raise error.OverrideError(self.position, 'Multiple inheritance is not yet supported')
 
                 if base.isSubClass(self):
-                    raise error.OverrideError(self.position, 'Circular inheritance between "%s" and "%s"' % (self.name, base.name))
+                    raise error.CircularInheritanceError(self.position, 'Circular inheritance between "%s" and "%s"' % (self.name, base.name))
 
             elif isinstance(base, InterfaceDecl):
                 self.baseInterfaces.append(base)
@@ -187,12 +190,12 @@ class ClassDecl(Type):
         if self.flags.abstract: return # abstract classes don't need to implement everything; that's what subclasses are for
 
         for base in self.bases:
-            if not hasattr(base, 'body'):
-                #print "FIXME: __checkConcreteness doesn't work so well with external types"
+            if 0 and base.external:
+                raise error.InternalError("FIXME: __checkConcreteness doesn't work so well with external types")
                 continue
 
-            for decl in base.body.decls:
-                if not isinstance(decl, FunctionDecl) or not decl.flags.abstract: continue
+            for decl in base.getMethods():
+                if not decl.flags.abstract: continue
 
                 paramTypes = [param.type for param in decl.params]
                 if self.getMethod(decl.name, paramTypes, decl.returnType) is decl:
@@ -300,6 +303,16 @@ class ClassDecl(Type):
                     return m
 
         return None
+
+    def getMethods(self):
+        '''Returns all methods defined in this class.
+        Does not search subclasses.
+        '''
+        result = []
+        for decl in self.body.decls:
+            if isinstance(decl, FunctionDecl):
+                result.append(decl)
+        return result
 
     def apply(self, args):
         from ast.ctorcall import CtorCall
