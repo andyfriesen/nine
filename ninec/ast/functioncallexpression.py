@@ -52,7 +52,7 @@ class FunctionCallExpression(object):
 
         func = self.func.semantic(scope)
         if func is None:
-            raise error.IdentifierError, 'Unable to resolve %r' % self.name
+            raise error.NameError('Unable to resolve %r' % self.func)
 
         args = []
         for arg in self.args:

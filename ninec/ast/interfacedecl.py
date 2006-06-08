@@ -78,7 +78,9 @@ class FunctionPrototype(FunctionDecl):
         for index, param in enumerate(self.params):
             self.params[index].type = param.type.semantic(scope)
 
+        r = self.returnType
         self.returnType = self.returnType.semantic(scope)
+        #assert self.returnType is not None, r
 
         return self
 
@@ -93,6 +95,9 @@ class FunctionPrototype(FunctionDecl):
 
     def emitCode(self, gen):
         pass
+
+    def __repr__(self):
+        return '<FunctionPrototype %s>' % self.name
 
 class InterfaceBody(object):
     def __init__(self, decls):
@@ -234,6 +239,9 @@ class InterfaceDecl(vartypes.Type):
 
         else:
             return None
+
+    def getMethods(self):
+        return self.body.decls
 
     def emitType(self, gen):
         if self.builder is not None: return

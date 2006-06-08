@@ -23,8 +23,8 @@ class IdentifierTest(unittest.TestCase):
         result = Identifier.parse(tokens)
         self.failIf(result is None)
 
-    def testFailedParse(self):
-        tokens = lex('print') # print is a keyword, not an identifier
+    def testFailParseKeyword(self):
+        tokens = lex('print')
 
         result = Identifier.parse(tokens)
         self.failUnless(result is None)

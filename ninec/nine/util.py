@@ -61,7 +61,7 @@ def getNineType(theType):
         assert False, (theType, type(theType))
 
 def getNetType(theType):
-    from ast.vartypes import Type
+    from ast.vartypes import Type, __WTF
 
     if isinstance(theType, CLRMeta):
         theType = typeToType(theType)
@@ -72,6 +72,9 @@ def getNetType(theType):
     elif isinstance(theType, System.Type):
         return theType
 
+    elif isinstance(theType, __WTF):
+        return theType.semantic(None)
+
     else:
-        assert False, theType
+        assert False, (theType, type(theType))
 

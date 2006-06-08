@@ -63,7 +63,7 @@ class DotExpression(object):
 
         assert isinstance(rhs, Identifier), rhs
 
-        #lhs can be a namespace, a class name, or an expression.
+        # lhs can be a namespace, a class name, or an expression.
 
         if isinstance(lhs, (Namespace, QualifiedName)):
             return QualifiedName(lhs, rhs).semantic(scope)
@@ -72,10 +72,13 @@ class DotExpression(object):
             # Static attribute of a class.
             return lhs.getMember(lhs, rhs.name)
 
-        else:
-            # Assume expression
+        elif hasattr(lhs, 'getType'):
+            # Expression
             ltype = lhs.getType()
             return ltype.getMember(lhs, rhs.name)
+
+        else:
+            raise error.NameError('%r has no attribute %r' % (self.lhs, self.rhs))
 
     def __repr__(self):
         return '%r.%r' % (self.lhs, self.rhs)

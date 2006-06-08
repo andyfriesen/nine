@@ -11,39 +11,36 @@ class Driver(object):
     def addReference(self, assemblyName):
         self.references.append(assemblyName)
 
-    def _loadAssembly(self, name):
-        '''Find, load, and return an assembly, given its name.
-        The name can include path separators, but should not
-        have an extension.
-        '''
-        from CLR import System
-        from CLR.System import Reflection
-        from CLR.System import IO
+    def _loadAssembly(self, assemblyName):
+        from CLR.System import String
         from CLR.System.Reflection import Assembly
-
-        assembly = None
+        from CLR.System.IO import FileLoadException
 
         try:
-            # LoadWithPartialName will get us stuff from the GAC, so try it first.
-            assembly = Assembly.LoadWithPartialName(name)
+            # HACK around WEIRD bug in Python .NET
+            clrName = String(assemblyName)
 
-        except (System.BadImageFormatException, IO.FileNotFoundException, IO.FileLoadException):
-            # LoadFrom is needed to grab assemblies from arbitrary pathnames.  Try it if LoadWithPartialName fails.
+            assembly = Assembly.Load(clrName)
+            if assembly is not None:
+                return assembly
 
-            fileName = name + '.dll'
-            assembly = Assembly.LoadFrom(fileName)
-
-        if assembly is None:
-            raise Exception, 'Unable to load assembly %s' % name
-
-        return assembly
+        except FileLoadException:
+            print assemblyName
+            raise
 
     def _scanAssembly(self, globalNs, assemblyName):
         from ast.namespace import Namespace
         from ast.vartypes import Type
         from ast.external import ExternalType
 
+        from CLR import System
+        from CLR.System import Reflection
+        from CLR.System.Reflection import Assembly
+
+        #assembly = Assembly.LoadWithPartialName(assemblyName)
         assembly = self._loadAssembly(assemblyName)
+        if assembly is None:
+            raise Exception, 'Unable to load assembly %s' % assemblyName
 
         namespaces = globalNs
 

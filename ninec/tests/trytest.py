@@ -1,4 +1,6 @@
+
 import unittest
+from ast.trystatement import TryStatement
 from tests import util
 from nine import error
 
@@ -10,17 +12,36 @@ class TryTest(unittest.TestCase):
             except a:
                 pass
             finally:
-                pass'''
-        )
+                pass
+        ''')
 
-        util.parseProgram(program)
+        ast = util.parseProgram(program)
+        self.assertTrue(isinstance(ast[0], TryStatement))
 
-    def testParse2(self):
+        stmt = ast[0]
+        self.assertEqual(1, len(stmt.exceptBlocks))
+        self.assertNotEqual(None, stmt.finallyBlock)
+
+    def testParseTryFinally(self):
         program = util.source('''
             try:
                 pass
-            '''
-        )
+            finally:
+                pass
+        ''')
+
+        ast = util.parseProgram(program)
+        self.assertTrue(isinstance(ast[0], TryStatement))
+
+        stmt = ast[0]
+        self.assertEqual([], stmt.exceptBlocks)
+        self.assertNotEqual(None, stmt.finallyBlock)
+
+    def testParseNoExceptOrFinally(self):
+        program = util.source('''
+            try:
+                pass
+        ''')
 
         self.assertRaises(error.SyntaxError, lambda: util.parseProgram(program))
 
@@ -34,9 +55,10 @@ class TryTest(unittest.TestCase):
                 pass'''
         )
 
-        util.semanticProgram(program, [])
+        st = util.semanticProgram(program, [])
+        self.assertNotEqual(None, st)
 
-    def testSemantic2(self):
+    def testSemanticTryFinallyExcept(self):
         program = util.source('''
             try:
                 pass
@@ -91,28 +113,15 @@ class TryTest(unittest.TestCase):
 
                 try:
                     print nine
-                    print "This shouldn't work either" + nullObj.ToString()
+                    print "This should freak out" + nullObj.ToString()
                 finally:
-                    print 'finally!'
+                    print 'We should see this!'
 
             except System.NullReferenceException:
                 pass
         ''')
 
         util.runProgram('try_finally_test', program, ['mscorlib'])
-
-    def testTryNoCatch(self):
-        program = util.source('''
-            var nullObj as System.Object
-
-            try:
-                print nullObj
-        ''')
-
-        self.assertRaises(
-            error.SyntaxError,
-            lambda: util.runProgram('try_nocatch_test', program, ['mscorlib'])
-        )
 
     def testExceptInstance(self):
         program = util.source('''

@@ -1,5 +1,7 @@
 
 from ast import classdecl
+from ast import interfacedecl
+from ast import functiondecl
 from ast import vartypes
 from ast.memberflags import MemberFlags
 
@@ -8,6 +10,8 @@ from nine import util
 
 from CLR import System
 from CLR.System.Reflection import BindingFlags, MemberTypes
+
+theFlag = 0
 
 class ExternalClass(classdecl.ClassDecl):
     def __init__(self, name, builder):
@@ -27,7 +31,7 @@ class ExternalClass(classdecl.ClassDecl):
 
         self.__bases = None
 
-        assert builder not in ExternalType._Types
+        assert builder.FullName not in ExternalType._Types
 
     def __getBases(self):
         if self.__bases is None:
@@ -134,6 +138,59 @@ class ExternalClass(classdecl.ClassDecl):
         pass
 
 
+class ExternalInterface(interfacedecl.InterfaceDecl):
+    def __init__(self, name, builder):
+        self.name = name
+        self.__builder = builder
+        self.__methods = None
+
+    def __getBuilder(self):
+        return self.__builder
+
+    builder = property(__getBuilder)
+
+    def semantic(self, scope):
+        return self
+
+    def getMethods(self):
+        if self.__methods is None:
+            flags = BindingFlags.Public | BindingFlags.Instance
+            result = self.__builder.GetMethods(flags)
+            self.__methods = [ExternalMethod(self, mi) for mi in result]
+
+        return self.__methods
+
+    def getMethod(self, name, paramList, returnType):
+        methods = self.getMethods()
+
+        for method in methods:
+            if method.name == name and method.params == paramList and method.returnType == returnType:
+                return method
+
+        return None
+
+    def getMember(self, this, name):
+        flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static
+        methodInfo = self.__builder.GetMember(name, flags)
+        if len(methodInfo) > 0:
+            return UnresolvedMethod(this, name)
+
+        flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static
+        propertyInfo = self.__builder.GetMember(name, flags)
+
+        assert len(propertyInfo) in (0, 1), 'Not yet implemented: property %s.%s is overloaded. %r' % (self.builder.FullName, name, list(propertyInfo))
+
+        if len(propertyInfo) > 0:
+            return ExternalProperty(this, propertyInfo[0])
+
+        if name in self.symbols:
+            return self.symbols[name]
+
+        raise error.NameError, 'External interface %s has no member named %s' % (self.builder.FullName, name)
+
+    def emitDeclaration(self, gen):
+        pass
+
 class ExternalType(vartypes.Type):
     def __init__(self, name, builder):
         super(ExternalType, self).__init__(name, builder)
@@ -147,7 +204,7 @@ class ExternalType(vartypes.Type):
 
         self.__bases = None
 
-        assert builder not in ExternalType._Types
+        assert builder.FullName not in ExternalType._Types
 
     def __getBases(self):
         if self.__bases is None:
@@ -255,7 +312,7 @@ class ExternalType(vartypes.Type):
         pass
 
     def __repr__(self):
-        return '<external type %s>' % self.builder.FullName
+        return '<%s %s>' % (type(self).__name__, self.builder.FullName)
 
     _Types = {}
 
@@ -264,18 +321,22 @@ class ExternalType(vartypes.Type):
         if not isinstance(type, System.Type):
             type = util.typeToType(type)
 
-        if type not in ExternalType._Types:
+        typeName = type.FullName
+
+        if typeName not in ExternalType._Types:
             #type = ExternalType(type.FullName, builder=type)
             type = ExternalType.createNineType(type)
-            ExternalType._Types[type] = type
+            ExternalType._Types[typeName] = type
             return type
         else:
-            return ExternalType._Types[type]
+            return ExternalType._Types[typeName]
     getNineType = staticmethod(getNineType)
 
     def createNineType(type):
         if type.IsClass:
             return ExternalClass(type.FullName, builder=type)
+        elif type.IsInterface:
+            return ExternalInterface(type.FullName, builder=type)
         else:
             return ExternalType(type.FullName, builder=type)
     createNineType = staticmethod(createNineType)
@@ -394,7 +455,7 @@ class UnresolvedMethod(object):
     def emitLoad(self, gen):
         assert False, 'Attempt to call unresolved external method %s.%s' % (self.builder.FullName, self.name)
 
-class ExternalMethod(object):
+class ExternalMethod(functiondecl.FunctionDecl):
     '''A method of an external class that has been resolved to a specific overload.
     Presently only for internal use: UnresolvedMethod transforms itself into
     an ExternalMethodCall directly.
@@ -415,6 +476,18 @@ class ExternalMethod(object):
         if mi.IsFinal: self.flags.sealed = True
 
         self.name = mi.Name
+
+        self.__params = None
+
+        self.returnType = ExternalType.getNineType(mi.ReturnType)
+
+    def __getParams(self):
+        if self.__params is None:
+            self.__params = []
+
+        return self.__params
+
+    params = property(__getParams)
 
 class ExternalConstructor(object):
     '''

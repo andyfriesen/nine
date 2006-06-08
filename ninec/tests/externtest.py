@@ -1,4 +1,3 @@
-import sys;sys.path.append('.')
 import ast.external
 
 import unittest
@@ -205,6 +204,33 @@ class ExternTest(unittest.TestCase):
             error.OverrideError,
             lambda: util.semanticProgram(program, ['mscorlib'])
         )
+
+    def testOverrideExternalClassMethod(self):
+        program = util.source('''
+            class MyClass(TestClass.PublicClass):
+                override def Foo(x as int):
+                    print 'MyClass.Foo'
+                    print x
+
+            var o as TestClass.PublicClass
+            o = MyClass()
+            o.Foo(9)
+        ''')
+
+        util.runProgram('implement_override_external_class_method_test', program, ['bin/ClassLibrary1'])
+
+    def testImplementExternalInterface(self):
+        program = util.source('''
+            class MyClass(TestClass.ExternalInterface):
+                def Foo():
+                    print 'Foo!!'
+
+            var o as TestClass.ExternalInterface
+            o = MyClass()
+            o.Foo()
+        ''')
+
+        util.runProgram('implement_external_interface_test', program, ['bin/ClassLibrary1'])
 
     def testCallValueTypeMember(self):
         program = util.source('''
