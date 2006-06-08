@@ -144,6 +144,14 @@ class ExternalInterface(interfacedecl.InterfaceDecl):
         self.__builder = builder
         self.__methods = None
 
+        bases = list(self.__builder.GetInterfaces())
+        self.__bases = [ExternalType.getNineType(type) for type in bases]
+
+    def __getBases(self):
+        return self.__bases
+
+    bases = property(__getBases)
+
     def __getBuilder(self):
         return self.__builder
 
