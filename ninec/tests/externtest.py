@@ -225,12 +225,31 @@ class ExternTest(unittest.TestCase):
                 def Foo():
                     print 'Foo!!'
 
+                def Bar():
+                    print 'Bar!!111juan'
+
             var o as TestClass.ExternalInterface
             o = MyClass()
             o.Foo()
         ''')
 
         util.runProgram('implement_external_interface_test', program, ['bin/ClassLibrary1'])
+
+    def testIncompleteExternalInterface(self):
+        program = util.source('''
+            class MyClass(TestClass.ExternalInterface):
+                def Foo():
+                    print 'Foo!'
+
+            var o as TestClass.ExternalInterface
+            o = MyClass()
+            o.Foo()
+        ''')
+
+        self.assertRaises(
+            error.OverrideError,
+            lambda: util.buildProgram('incomplete_external_interface_test', program, ['bin/ClassLibrary1'])
+        )
 
     def testCallValueTypeMember(self):
         program = util.source('''

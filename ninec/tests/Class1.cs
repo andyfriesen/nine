@@ -139,5 +139,6 @@ namespace TestClass {
 
     public interface ExternalInterface {
         void Foo();
+        void Bar();
     }
 }
