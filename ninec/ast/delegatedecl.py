@@ -55,7 +55,7 @@ class _InvokeMethod(FunctionDecl):
             params,
             body=None,
             flags=MemberFlags(
-                abstract = True         # Semantic analyzer needs to know why body is None
+                abstract = True         # HACK: Semantic analyzer needs to know why body is None
             )
         )
 
@@ -152,6 +152,9 @@ class DelegateDecl(classdecl.ClassDecl):
         return DelegateDecl(position, name.value, params, returnType)
     parse = staticmethod(parse)
 
+    def resolveNames(self, scope):
+        pass
+
     def semantic(self, scope):
         # semantic test returnType and params
 
@@ -175,25 +178,25 @@ class DelegateDecl(classdecl.ClassDecl):
         from ast import external
         from ast import classdecl
         from ast.ctor import Ctor
-        
+
         for decl in self.body.decls:
             if not isinstance(decl, Ctor):
                 continue
-            
+
             elif isinstance(param, FunctionDecl):
                 ctorParams = [p.getType() for p in self.params]
                 callingParams = [p.getType() for p in param.params]
 
                 if ctorParams == callingParams and self.returnType == param.returnType:
                     return decl
-                
+
             elif isinstance(param , external.ExternalMethodCall):
                 ctorParams = [p.getType() for p in self.params]
                 callingParams = [p.getType() for p in param.args]
 
                 if ctorParams == callingParams:
                     return decl
-                
+
             elif isinstance(param, (
                     external.UnresolvedMethod,
                     classdecl._MethodReference
@@ -202,7 +205,7 @@ class DelegateDecl(classdecl.ClassDecl):
                 mc = param.apply(self.params)
                 if mc is not None:
                     return decl
-            
+
         else:
             return None
 

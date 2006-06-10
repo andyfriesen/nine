@@ -1,5 +1,6 @@
 
 from ast.expression import Expression
+from ast import declaration
 from ast import memberflags
 
 from nine import error
@@ -7,7 +8,7 @@ from nine.scope import Scope
 from nine import token
 from nine.set import *
 
-class VarDecl(object):
+class VarDecl(declaration.Declaration):
     def __init__(self, name, position, type=None, initializer=None, flags=None):
         assert isinstance(name, basestring), name
 
@@ -71,6 +72,9 @@ class VarDecl(object):
         return VarDecl(name.value, name.position, type, initializer, flags)
     parse = staticmethod(parse)
 
+    def resolveNames(self, scope):
+        pass
+
     def semantic(self, scope):
         from ast import vartypes
 
@@ -133,7 +137,7 @@ class VarDecl(object):
         if self.initializer is not None:
             return '<%s %s = %s>' % (type(self).__name__, self.name, self.initializer)
         else:
-            return '<%s %s>' % (type(self).__name__, self.name)
+            return super(VarDecl, self).__repr__()
 
 class _LocalVar(VarDecl):
     def semantic(self, scope):

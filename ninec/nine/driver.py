@@ -1,8 +1,8 @@
 
 from nine.lexer import lex
 from nine.parser import parse
-from nine.semantic import semantic
 from nine.codegenerator import CodeGenerator
+from nine import semantic
 
 class Driver(object):
     def __init__(self):
@@ -141,7 +141,8 @@ class Driver(object):
             if hasattr(decl, 'name'):
                 globalNs.symbols[decl.name] = decl
 
-        st = semantic(ast, globalNs.symbols)
+        globalScope = semantic.makeGlobalScope(globalNs.symbols)
+        st = semantic.semantic(ast, globalScope)
 
         gen = CodeGenerator()
         gen.createProgram(outputName, st)

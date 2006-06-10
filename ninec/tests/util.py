@@ -46,7 +46,7 @@ def source(program):
 from nine.driver import Driver
 from nine.lexer import lex
 from nine.parser import parse
-from nine.semantic import semantic
+from nine import semantic
 
 def lexProgram(program):
     return lex(program)
@@ -65,7 +65,9 @@ def semanticProgram(program, assemblies=[]):
 
     driver.fixPrimitives()
 
-    return semantic(parse(lex(program)), globalNs.symbols)
+    globalScope = semantic.makeGlobalScope(globalNs.symbols)
+
+    return semantic.semantic(parse(lex(program)), globalScope)
 
 def buildProgram(name, program, assemblies=[]):
     exeName = name

@@ -53,7 +53,7 @@ class Identifier(object):
             elif v == 'void':
                 return vartypes.VoidType
             else:
-                assert false, v
+                assert False, v
 
         # Get the symbol to which the name refers, then return the appropriate
         # structure depending on what its type is.

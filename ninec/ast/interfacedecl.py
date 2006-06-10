@@ -5,6 +5,7 @@ from ast.functiondecl import FunctionDecl
 from ast.memberflags import MemberFlags
 from ast.passstatement import PassStatement
 from ast.qualifiedname import QualifiedName
+from ast.declaration import Declaration
 from ast import vartypes
 
 from nine import error
@@ -150,7 +151,7 @@ class InterfaceBody(object):
 
         return InterfaceBody(decls)
 
-class InterfaceDecl(vartypes.Type):
+class InterfaceDecl(vartypes.Type, Declaration):
     def __init__(self, position, name, bases, body):
         super(InterfaceDecl, self).__init__(name)
         self.position = position
@@ -202,6 +203,15 @@ class InterfaceDecl(vartypes.Type):
         return InterfaceDecl(position, name.value, bases, body)
 
     parse = staticmethod(parse)
+
+    def resolveNames(self, scope):
+        bases = list()
+
+        for base in self.bases:
+            assert not isinstance(base, Declaration), (self, base)
+            bases.append(base.semantic(scope))
+
+        self.bases = bases
 
     def semantic(self, scope):
         childScope = Scope(parent=scope)

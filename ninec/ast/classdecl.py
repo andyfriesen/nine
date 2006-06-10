@@ -1,4 +1,5 @@
 
+from ast.declaration import Declaration
 from ast.functiondecl import FunctionDecl
 from ast.passstatement import PassStatement
 from ast.vardecl import VarDecl
@@ -63,7 +64,7 @@ class ClassBody(object):
 
         return ClassBody(decls)
 
-class ClassDecl(Type):
+class ClassDecl(Declaration, Type):
     def __init__(self, position, name, bases, body, flags):
         super(ClassDecl, self).__init__(name)
 
@@ -166,7 +167,7 @@ class ClassDecl(Type):
                     self.baseClass = base
 
                 elif self.baseClass is not base:
-                    raise error.OverrideError(self.position, 'Multiple inheritance is not yet supported')
+                    raise error.OverrideError(self.position, 'Multiple class inheritance is not yet supported')
 
                 if base.isSubClass(self):
                     raise error.CircularInheritanceError(self.position, 'Circular inheritance between "%s" and "%s"' % (self.name, base.name))
@@ -200,6 +201,17 @@ class ClassDecl(Type):
                 paramTypes = [param.type for param in decl.params]
                 if self.getMethod(decl.name, paramTypes, decl.returnType) is decl:
                     raise error.OverrideError(self.position, 'Class %s does not implement abstract method %s.%s' % (self.name, base.name, decl.name))
+
+    def resolveNames(self, scope):
+        from ast.identifier import Identifier
+        from ast.declaration import Declaration
+
+        bases = list()
+        for baseClass in self.bases:
+            assert not isinstance(baseClass, Declaration), (self, baseClass)
+            bases.append(baseClass.semantic(scope))
+
+        self.bases = bases
 
     def semantic(self, scope):
         # HACK: check scope.symbols directly, because we do not care if outer

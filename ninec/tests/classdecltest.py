@@ -299,7 +299,6 @@ class ClassDeclTest(unittest.TestCase):
         )
 
     def testCircularInheritance(self):
-        #self.fail("Known to fail.  Has to do with the order in which declarations are semantically tested.  Must fix.")
         program = util.source('''
             class A(B):
                 pass
@@ -312,6 +311,24 @@ class ClassDeclTest(unittest.TestCase):
             error.CircularInheritanceError,
             lambda: util.semanticProgram(program)
         )
+
+    def testThreeLevelCircularInheritance(self):
+        program = util.source('''
+            class A(C):
+                pass
+
+            class B(A):
+                pass
+
+            class C(B):
+                pass
+        ''')
+
+        self.assertRaises(
+            error.CircularInheritanceError,
+            lambda: util.semanticProgram(program)
+        )
+
 
     def testSealedClass(self):
         program = util.source('''

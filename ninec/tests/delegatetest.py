@@ -62,32 +62,33 @@ class DelegateTest(unittest.TestCase):
             class Cls:
                 def out(a as string):
                     print a
-                
+
             var b = Cls()
             b.out("You should see 9:")
-            
+
             delegate InstanceOutput(str as string)
-            
+
             var c = InstanceOutput(b.out)
             c("9")
             '''
         )
-        
+
         util.runProgram('delegate_instance_method', program, [])
+
     def testDelegateInstanceMethod(self):
         program = util.source('''
             var b = System.Object()
-            
+
             delegate InstanceOutput() as System.Type
-            
+
             var c = InstanceOutput(b.GetType())
-            
+
             print "You should see 'System.Object':"
             print c()
             '''
         )
-        
+
         util.runProgram('delegate_external_instance_method', program, ['mscorlib'])
-        
+
 if __name__=='__main__':
     unittest.main()

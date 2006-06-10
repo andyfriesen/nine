@@ -1,7 +1,7 @@
 
 class Scope(object):
 
-    def __init__(self, parent, func=None):
+    def __init__(self, parent=None, func=None):
         self.parent = parent
         self.func = None
         self.symbols = {}
