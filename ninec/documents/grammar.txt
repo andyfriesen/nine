@@ -44,10 +44,16 @@ Parser-level
         :       "(" qualifiedName ( "," qualifiedName )* ")"
 
     classBody
-        :       ( functionDeclaration
+        :       INDENT
+                ( attributeDirective )*
+                ( functionDeclaration
                 | variableDeclaration
                 | passStatement
                 )*
+                DEDENT
+
+    attributeDirective
+        :       "[" qualifiedName ( "(" functionArguments ")" )? "]"
 
 
     functionModifier
@@ -55,9 +61,9 @@ Parser-level
 
     functionDeclaration
         :       ( functionModifier )*
-                    "def" Identifier
-                    "(" functionParameters ")" ( returnType )? ":"
-                    blockStatement
+                "def" Identifier
+                "(" functionParameters ")" ( returnType )? ":"
+                blockStatement
 
     functionParameter
         :       Identifier ( "as" type )?
@@ -86,6 +92,11 @@ Parser-level
 
     whileStatement
         :       "while" expression ":" blockStatement
+
+    blockStatement
+        :       INDENT
+                ( statement )+
+                DEDENT
 
     expressionStatement
         :       expression
