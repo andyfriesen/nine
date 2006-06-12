@@ -2,6 +2,7 @@
 from ast.declaration import Declaration
 from ast.functiondecl import FunctionDecl
 from ast.passstatement import PassStatement
+from ast.attribute import Attribute
 from ast.vardecl import VarDecl
 from ast.vartypes import Type
 from ast import memberflags
@@ -14,46 +15,57 @@ from nine.codegenerator import CodeGenerator
 from nine.scope import Scope
 
 class ClassBody(object):
-    def __init__(self, decls):
+    def __init__(self, decls, attrs=None):
+        self.attributes = attrs or []
         self.decls = decls
 
     def parse(tokens):
         if tokens.peek() is not token.BEGIN_BLOCK:
             return None
 
+        attributes = []
         decls = []
 
         tokens.expect(token.BEGIN_BLOCK)
         while tokens.peek() is not token.END_BLOCK:
-            decl = (
-                FunctionDecl.parse(tokens) or
-                VarDecl.parse(tokens) or
-                PassStatement.parse(tokens)
-            )
+            decl = None
 
-            if decl is None:
-                raise error.SyntaxError(tokens.peek().position, 'Expected end block, variable or class declaration, or pass statement.  Got %r' % tokens.peek())
+            attr = Attribute.parse(tokens)
+            if attr is not None:
+                attributes.append(attr)
+            else:
+                decl = (
+                    FunctionDecl.parse(tokens) or
+                    VarDecl.parse(tokens) or
+                    PassStatement.parse(tokens)
+                )
+
+                if decl is None:
+                    raise error.SyntaxError(tokens.peek().position, 'Expected end block, variable or class declaration, or pass statement.  Got %r' % tokens.peek())
+
+                if not isinstance(decl, PassStatement):
+                    decls.append(decl)
 
             while tokens.peek() is token.END_OF_STATEMENT:
                 tokens.getNext()
 
-            if isinstance(decl, PassStatement): continue # Don't store pass statements.  They're not useful.
-
-            decls.append(decl)
-
         tokens.expect(token.END_BLOCK)
 
-        return ClassBody(decls)
+        return ClassBody(decls, attributes)
     parse = staticmethod(parse)
 
     def semantic(self, scope):
         childScope = Scope(parent=scope)
 
+        attributes = []
+        for attr in self.attributes:
+            attributes.append(attr.semantic(childScope))
+
         decls = []
         for decl in self.decls:
             decls.append(decl.semantic(childScope))
 
-        return ClassBody(decls)
+        return ClassBody(decls, attributes)
 
     def semantic2(self, scope):
         childScope = Scope(parent=scope)
@@ -76,6 +88,8 @@ class ClassDecl(Declaration, Type):
         # Base class and interfaces.  Worked out during semantic testing
         self.baseClass = None
         self.baseInterfaces = []
+
+        self.attributes = []
 
         self.body = body
 
@@ -359,10 +373,17 @@ class ClassDecl(Declaration, Type):
         self.builder = gen.module.DefineType(self.name, flags, self.baseClass.builder, ifaces)
 
     def emitDeclaration(self, gen):
+        from CLR.System.Reflection.Emit import CustomAttributeBuilder
+
         if self.__declsBuilt: return
         self.__declsBuilt = True
 
         log.write('emit', 'emitDeclaration class ', self, self.name)
+
+        for attr in self.attributes:
+            ctorInfo = attr.className.builder.GetConstructor([])
+            attrBuilder = CustomAttributeBuilder(ctorInfo, [])
+            self.builder.SetCustomAttribute(attrBuilder)
 
         # Be sure base classes get their stuff done before us.
         self.baseClass.emitDeclaration(gen)

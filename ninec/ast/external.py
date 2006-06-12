@@ -18,6 +18,8 @@ class ExternalClass(classdecl.ClassDecl):
         flags = MemberFlags()
         super(ExternalClass, self).__init__(None, name, [], None, flags)
 
+        assert builder is not None, name
+
         self.builder = builder
 
         self.flags = MemberFlags()
@@ -212,6 +214,8 @@ class ExternalType(vartypes.Type):
 
         self.__bases = None
 
+        self.external = True
+
         assert builder.FullName not in ExternalType._Types
 
     def __getBases(self):
@@ -320,7 +324,7 @@ class ExternalType(vartypes.Type):
         pass
 
     def __repr__(self):
-        return '<%s %s>' % (type(self).__name__, self.builder.FullName)
+        return '<%s %r>' % (type(self).__name__, self.builder)
 
     _Types = {}
 
@@ -341,12 +345,17 @@ class ExternalType(vartypes.Type):
     getNineType = staticmethod(getNineType)
 
     def createNineType(type):
+        name = unicode(type.FullName)
+        pos = name.rfind('.')
+        if pos != -1:
+            name = name[pos + 1:]
+
         if type.IsClass:
-            return ExternalClass(type.FullName, builder=type)
+            return ExternalClass(name, builder=type)
         elif type.IsInterface:
-            return ExternalInterface(type.FullName, builder=type)
+            return ExternalInterface(name, builder=type)
         else:
-            return ExternalType(type.FullName, builder=type)
+            return ExternalType(name, builder=type)
     createNineType = staticmethod(createNineType)
 
 class ExternalField(object):

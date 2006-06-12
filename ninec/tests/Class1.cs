@@ -141,4 +141,7 @@ namespace TestClass {
         void Foo();
         void Bar();
     }
+
+    public class ThingieAttribute {
+    }
 }

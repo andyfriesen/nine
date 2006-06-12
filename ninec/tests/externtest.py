@@ -9,6 +9,9 @@ from ast.namespace import Namespace
 
 from tests import util
 
+if 'set' not in globals():
+    from sets import Set as set
+
 class ExternTest(unittest.TestCase):
     def testScanAssembly(self):
         from nine.scope import Scope
@@ -22,8 +25,11 @@ class ExternTest(unittest.TestCase):
         driver._scanAssembly(globalNs, 'bin/ClassLibrary1')
 
         cls = globalNs.symbols['TestClass'].symbols['TestClass']
-        #assert isinstance(cls, ExternalType)
+
+        assert isinstance(cls, ExternalClass)
         assert cls.external
+
+        self.assertEqual(cls.name, 'TestClass')
 
     def testReadAttribute(self):
         program = util.source('''

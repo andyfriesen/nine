@@ -50,6 +50,8 @@ class ArrayType(external.ExternalType):
         from ast.literalexpression import IntLiteral
 
         self.arrayType = self.arrayType.semantic(scope)
+        assert self.arrayType is not None
+
         self.arity = self.arity.semantic(scope)
         if not isinstance(self.arity, IntLiteral):
             raise error.SyntaxError(self.position, 'Array arity must be a positive integer, not %r' % self.arity)
@@ -104,15 +106,18 @@ class ArrayType(external.ExternalType):
                     # Ask the ModuleBuilder for arrays of user types.
                     self.__builder = self.arrayType.builder.Module.GetType(name)
 
+        assert self.__builder is not None, self
         return self.__builder
 
     builder = property(__getBuilder)
 
     def __getName(self):
-        #return self.arrayType.name + '[]'
         arity = self.arity
         if hasattr(arity, 'getValue'):
             arity = arity.getValue()
 
-        return self.arrayType.name + '[' + (',' * (arity - 1)) + ']'
+        if self.arrayType.external:
+            return self.arrayType.builder.FullName + '[' + (',' * (arity - 1)) + ']'
+        else:
+            return self.arrayType.name + '[' + (',' * (arity - 1)) + ']'
     name = property(__getName)
