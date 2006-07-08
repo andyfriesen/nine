@@ -169,10 +169,6 @@ class ClassDecl(Declaration, Type):
         for index, base in enumerate(self.bases):
             self.bases[index] = base.semantic(scope)
 
-        if 0:
-            for base in self.bases:
-                print 'BASE', `base`, '\t', `getattr(base, 'bases', None)`
-
         Object = util.getNineType(System.Object)
 
         for base in self.bases:
@@ -318,7 +314,7 @@ class ClassDecl(Declaration, Type):
             # compare return types
             returnType = util.getNineType(returnType)
             if returnType != decl.returnType:
-                return None
+                return None # FIXME? no test coverage for this line
 
             return decl
 
@@ -434,6 +430,7 @@ class _MemberReference(object):
             gen.ilGen.Emit(gen.opCodes.Ldsfld, self.decl.builder)
 
     def emitLoadAddress(self, gen):
+        # FIXME: poor test coverage here
         if not self.decl.flags.static:
             assert self.this is not None, self
             self.this.emitLoad(gen)

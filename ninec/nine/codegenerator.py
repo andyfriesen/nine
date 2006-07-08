@@ -39,6 +39,9 @@ class CodeGenerator(object):
         path, name = os.path.split(exeName)
         name, ext = os.path.splitext(name)
 
+        if not ext:
+            ext = '.exe'
+
         self.programName = name
 
         domain = Threading.Thread.GetDomain()
@@ -53,7 +56,7 @@ class CodeGenerator(object):
 
         self.module = self.asmBuilder.DefineDynamicModule(
             name,
-            name + '.exe'
+            name + ext
         )
 
         # TEMP: create the Main Class thing.

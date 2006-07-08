@@ -14,7 +14,7 @@ from tests import util
 
 class DotTest(unittest.TestCase):
     def testParse(self):
-        result = Expression.parse(lex('a.b.c.d'))
+        result = DotExpression.parse(lex('a.b.c.d'))
 
         assert isinstance(result, DotExpression), result
 

@@ -76,10 +76,10 @@ def buildProgram(name, program, assemblies=[]):
     path = path or 'bin'
     ext = ext or '.exe'
 
-    exeName = os.path.join(path, name + '.exe')
+    exeName = os.path.join(path, name + ext)
 
     if os.access(exeName, os.F_OK):
-        # Delete any pre-existing EXE
+        # Delete any pre-existing file
         os.unlink(exeName)
 
     driver = Driver()
