@@ -32,13 +32,14 @@ class LexerTest(unittest.TestCase):
         self.failUnlessEqual(result[2], 'mno123')
 
     def testLexKeyword(self):
-        result = lex('int print abc string if 0')
+        result = lex('int print abc string char if 0')
         self.failUnlessEqual(result[0].type, 'keyword')
         self.failUnlessEqual(result[1].type, 'keyword')
         self.failUnlessEqual(result[2].type, 'identifier')
         self.failUnlessEqual(result[3].type, 'keyword')
         self.failUnlessEqual(result[4].type, 'keyword')
-        self.failUnlessEqual(result[5].type, 'literal')
+        self.failUnlessEqual(result[5].type, 'keyword')
+        self.failUnlessEqual(result[6].type, 'literal')
 
     def testNewLine(self):
         result = lex('1234324 kljflkjsdfk \n234543 sdfl')

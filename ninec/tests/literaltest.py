@@ -36,6 +36,41 @@ class LiteralTest(unittest.TestCase):
     def testFloatLiteral(self):
         pass
 
+    def testCastToChar(self):
+        assert False, "This isn't implemented yet"
+        from tests import util
+        prog = util.source('''
+            var x as char = 'c'
+        ''')
+        
+        util.semanticProgram(prog)
+
+    def testCharLiteral(self):
+        assert False, "This isn't implemented yet"
+        from tests import util
+        
+        program = util.source('''
+            #var z as char='N' #char
+            var y = '9' #string
+            var x = "nine" #also string
+            var z = y[0]
+            
+            #print "z = 'N':"
+            #print z
+            print "x = 'nine' starts with 'n':"
+            print x
+            print x[0]
+            #print "see 'n' become 'N':"
+            x[0]=z
+            print x
+            print "see three '9's:"
+            print y
+            print y[0]
+            print y as char
+        ''')
+
+        util.runProgram('literal_stringindex_test', program)
+
     def testEmitCode(self):
         from tests import util
 
