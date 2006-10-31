@@ -102,6 +102,7 @@ class Driver(object):
 
         vartypes.IntType = ExternalType.getNineType(t2t(CLR.System.Int32))
         vartypes.FloatType = ExternalType.getNineType(t2t(CLR.System.Single))
+        vartypes.CharType = ExternalType.getNineType(t2t(CLR.System.Char))
         vartypes.StringType = ExternalType.getNineType(t2t(CLR.System.String))
         vartypes.BooleanType = ExternalType.getNineType(t2t(CLR.System.Boolean))
         vartypes.VoidType = ExternalType.getNineType(t2t(CLR.System.Void))
@@ -110,6 +111,7 @@ class Driver(object):
             'int' : vartypes.IntType,
             'float' : vartypes.FloatType,
             'boolean' : vartypes.BooleanType,
+            'char' : vartypes.CharType,
             'string' : vartypes.StringType,
             'void' : vartypes.VoidType
         }

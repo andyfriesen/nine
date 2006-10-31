@@ -24,7 +24,6 @@ class Type(object):
         peek = tokens.peek()
         if peek.type == 'keyword':
             name = tokens.getNext()
-
             if peek.value in PrimitiveTypes:
                 return PrimitiveTypes[peek.value]
 
@@ -136,7 +135,7 @@ class __WTF:
     def __init__(self, type):
         from nine import util
         self.type = util.getNetType(type)
-
+        
     def __repr__(self):
         return '<WTF %s>' % self.type.FullName
 
@@ -147,6 +146,7 @@ class __WTF:
 IntType = __WTF(System.Int32)
 FloatType = __WTF(System.Single)
 BooleanType = __WTF(System.Boolean)
+CharType = __WTF(System.Char)
 StringType = __WTF(System.String)
 VoidType = __WTF(System.Void)
 ObjectType = __WTF(System.Object)
@@ -155,6 +155,7 @@ PrimitiveTypes = {
     'int' : IntType,
     'float' : FloatType,
     'boolean' : BooleanType,
+    'char' : CharType,
     'string' : StringType,
     'void' : VoidType,
     'object' : ObjectType

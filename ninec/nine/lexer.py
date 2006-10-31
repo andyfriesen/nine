@@ -35,6 +35,7 @@ KEYWORDS = (
     'float',
     'int',
     'string',
+    'char',
     'boolean',
     'void',
     'array',

@@ -24,7 +24,7 @@ class Identifier(object):
         if peek.type == 'identifier':
             return Identifier(peek.value, peek.position)
 
-        elif peek.type == 'keyword' and peek.value in ('int', 'float', 'string', 'boolean', 'void'):
+        elif peek.type == 'keyword' and peek.value in ('int', 'float', 'char', 'string', 'boolean', 'void'):
             return Identifier(peek.value, peek.position)
 
         else:
@@ -46,6 +46,8 @@ class Identifier(object):
                 return vartypes.FloatType
             elif v == 'int':
                 return vartypes.IntType
+            elif v == 'char':
+                return vartypes.CharType
             elif v == 'string':
                 return vartypes.StringType
             elif v == 'boolean':
@@ -58,7 +60,7 @@ class Identifier(object):
         # Get the symbol to which the name refers, then return the appropriate
         # structure depending on what its type is.
         sym = scope.resolveSymbol(self.name)
-
+        
         if sym is None:
             raise error.NameError(self.position, 'Symbol "%s" is not defined' % self.name)
 
