@@ -36,10 +36,10 @@ class LiteralExpression(object):
 
         floatChk = re.findall('^[0-9]+\.[0-9]+$', value)
         if len(floatChk) == 1:
-            return FloatLiteral(pos, value)
+            return FloatLiteral(pos, float(value))
 
         if value.isdigit():
-            return IntLiteral(pos, value)
+            return IntLiteral(pos, int(value))
 
         elif isinstance(value, basestring) and value[0] in "'\"" and value[0] == value[-1]:
             return StringLiteral(pos, value)
@@ -66,9 +66,6 @@ class FloatLiteral(LiteralExpression):
         gen.ilGen.Emit(gen.opCodes.Ldc_R4, value)
 
 class IntLiteral(LiteralExpression):
-    def getValue(self):
-        return int(self.value)
-
     def getType(self):
         return vartypes.IntType
 

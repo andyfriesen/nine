@@ -93,5 +93,39 @@ class ArrayTest(unittest.TestCase):
 
         util.runProgram('array_index_value_type_method_test', program)
 
+    def testCharEmitLoad(self):
+        p=util.source('''
+            var a = "x"
+            var b = 'y'
+            
+            print "see x then y:"
+            print a[0]
+            print b[0]
+        ''')
+        util.runProgram('TestStringIndexCharEmitLoad',p)
+    
+    def testSetChar(self):
+        #TODO: this requires some fancy work, because System.String has no 'set' method
+        p=util.source('''
+            var a = "x"
+            var b = 'y'
+            
+            print "see x then y:"
+            print a[0]
+            a[0]=b[0]
+            print a[0]
+        ''')
+        self.assertRaises(error.CodeError, lambda:util.runProgram('TestStringIndexSetChar',p))
+        
+    def testAssignChar(self):
+        p=util.source('''
+            var a = "niNe"
+            var b as char= a[2]
+            
+            print "see N:"
+            print b
+        ''')
+        util.runProgram('TestStringIndexAssign',p)
+
 if __name__ == '__main__':
    unittest.main()

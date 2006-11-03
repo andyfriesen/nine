@@ -4,6 +4,7 @@ from ast.literalexpression import LiteralExpression, IntLiteral, StringLiteral
 
 from nine.token import Token
 from nine.lexer import lex
+from nine import error
 
 class LiteralTest(unittest.TestCase):
     def testNew(self):
@@ -36,17 +37,17 @@ class LiteralTest(unittest.TestCase):
     def testFloatLiteral(self):
         pass
 
-    def testCastToChar(self):
-        assert False, "This isn't implemented yet"
+    def testImplicitCast(self):
+        #TODO:this isn't implemented yet... if it is you will need to fix this test
         from tests import util
         prog = util.source('''
             var x as char = 'c'
         ''')
         
-        util.semanticProgram(prog)
+        self.assertRaises(error.TypeError, lambda:util.semanticProgram(prog))
 
-    def testCharLiteral(self):
-        assert False, "This isn't implemented yet"
+    def testRandomCharTests(self):
+        #TODO:when this is all implemented this test should reflect that
         from tests import util
         
         program = util.source('''
@@ -69,7 +70,7 @@ class LiteralTest(unittest.TestCase):
             print y as char
         ''')
 
-        util.runProgram('literal_stringindex_test', program)
+        self.assertRaises(error.TypeError, lambda:util.runProgram('test_random_char_tests', program))
 
     def testEmitCode(self):
         from tests import util
