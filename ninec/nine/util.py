@@ -1,4 +1,5 @@
 
+import clr
 import CLR
 from CLR import System
 
@@ -18,9 +19,10 @@ def typeToType(t):
     (especially since this one would be so small)
     '''
     assert t is not None
+    return clr.GetClrType(t)
 
     moduleName = t.__module__
-    assert moduleName.startswith('CLR.')
+    #assert moduleName.startswith('CLR.')
 
     fullName = moduleName[4:] + '.' + t.__name__
 
@@ -47,34 +49,24 @@ def getNineType(theType):
     from ast.external import ExternalType
     from ast.vartypes import Type
 
-    if isinstance(theType, CLRMeta):
-        theType = typeToType(theType)
-
-    # all classes from the CLR namespace are .NET classes.
-    if theType.__module__.startswith('CLR'):
-        return ExternalType.getNineType(theType)
+    if isinstance(theType, Type):
+        return theType
+    elif isinstance(theType, type):
+        return ExternalType.getNineType(clr.GetClrType(theType))
     elif isinstance(theType, basestring):
         return ExternalType.getNineType(System.Type.GetType(theType))
-    elif isinstance(theType, Type):
-        return theType
-    else:
-        assert False, (theType, type(theType))
+
+    return ExternalType.getNineType(theType)
 
 def getNetType(theType):
     from ast.vartypes import Type, __WTF
+    from ast.external import ExternalType
 
-    if isinstance(theType, CLRMeta):
-        theType = typeToType(theType)
-
-    if isinstance(theType, Type):
-        return theType.builder
-
-    elif isinstance(theType, System.Type):
-        return theType
-
-    elif isinstance(theType, __WTF):
+    if isinstance(theType, __WTF):
         return theType.semantic(None)
+
+    if hasattr(theType, 'builder'):
+        return theType.builder
 
     else:
         assert False, (theType, type(theType))
-

@@ -3,9 +3,9 @@ import os.path
 
 import CLR
 from CLR import System
-from CLR.System import Threading
-from CLR.System import Reflection
-from CLR.System.Reflection import Emit
+from System import Threading
+from System import Reflection
+from System.Reflection import Emit
 
 from ast import vartypes
 

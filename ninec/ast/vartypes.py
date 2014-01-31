@@ -123,7 +123,7 @@ class Type(object):
 
         if self.builder is None: return self is rhs
 
-        from CLR import System
+        import System
         return System.Object.ReferenceEquals(self.builder, rhs.builder)
 
     def __ne__(self, rhs):
@@ -133,8 +133,9 @@ class Type(object):
 # Their semantic() phase replaces them with the proper type
 class __WTF:
     def __init__(self, type):
-        from nine import util
-        self.type = util.getNetType(type)
+        # from nine import util
+        import clr
+        self.type = clr.GetClrType(type)
         
     def __repr__(self):
         return '<WTF %s>' % self.type.FullName

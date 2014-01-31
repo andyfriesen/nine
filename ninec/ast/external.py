@@ -9,7 +9,7 @@ from nine import error
 from nine import util
 
 from CLR import System
-from CLR.System.Reflection import BindingFlags, MemberTypes
+from System.Reflection import BindingFlags, MemberTypes
 
 theFlag = 0
 

@@ -1,6 +1,7 @@
 
 from CLR import System
-from CLR.System.Reflection import Assembly
+import clr
+from System.Reflection import Assembly
 
 from ast.expression import Expression
 from ast import vartypes
@@ -40,7 +41,7 @@ class PrintStatement(object):
             consoleArgs[0] = System.Object
 
         # This is silly.  Need to get a System.Type reference for the Console class.
-        consoleType = util.getNetType(System.Console)
+        consoleType = clr.GetClrType(System.Console)
 
         mi = consoleType.GetMethod('WriteLine', consoleArgs)
 
