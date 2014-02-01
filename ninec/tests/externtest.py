@@ -6,11 +6,9 @@ from ast.external import *
 
 from nine.driver import Driver
 from ast.namespace import Namespace
+import clr
 
 from tests import util
-
-if 'set' not in globals():
-    from sets import Set as set
 
 class ExternTest(unittest.TestCase):
     def testScanAssembly(self):
@@ -121,10 +119,10 @@ class ExternTest(unittest.TestCase):
 
         console = ns.symbols['System'].symbols['Console']
 
-        writeLineStr = console.getMethod('WriteLine', (System.String,), System.Void)
+        writeLineStr = console.getMethod('WriteLine', (vartypes.StringType,), vartypes.VoidType)
         assert writeLineStr is not None
 
-        nonExistent = console.getMethod('WriteLine', (System.String,), System.Single)
+        nonExistent = console.getMethod('WriteLine', (vartypes.StringType,), vartypes.FloatType)
         assert nonExistent is None, writeLineStr
 
         toStr = console.getMethod('ToString', (), System.String)

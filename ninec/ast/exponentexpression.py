@@ -4,6 +4,7 @@ from nine import lexer
 from nine import error
 from nine import util
 from CLR import System
+import clr
 
 
 legalTypes = [util.getNineType(t) for t in [System.Int32, System.Single, System.Double]]
@@ -63,5 +64,5 @@ class ExponentExpression(object):
         self.exp.emitLoad(gen)
         gen.ilGen.Emit(gen.opCodes.Conv_R8)
 
-        powerMethod = util.getNetType(System.Math).GetMethod('Pow')
+        powerMethod = clr.GetClrType(System.Math).GetMethod('Pow')
         gen.ilGen.Emit(gen.opCodes.Call, powerMethod)

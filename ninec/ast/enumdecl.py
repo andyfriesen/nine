@@ -152,9 +152,11 @@ class EnumDecl(Type):
         raise error.NameError, "No symbol named '%s' is defined in enumerator %s" % (name, self.name)
 
     def emitDeclaration(self, gen):
+        import clr
+
         if self.builder is not None:
             return
-        self.builder = gen.module.DefineEnum(self.name, gen.TypeAttributes.Public, util.getNetType(System.Int32))
+        self.builder = gen.module.DefineEnum(self.name, gen.TypeAttributes.Public, clr.GetClrType(System.Int32))
         for decl in self.body.decls:
             decl.emitDeclaration(gen)
 
