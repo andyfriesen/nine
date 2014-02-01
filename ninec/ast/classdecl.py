@@ -369,7 +369,7 @@ class ClassDecl(Declaration, Type):
         self.builder = gen.module.DefineType(self.name, flags, self.baseClass.builder, ifaces)
 
     def emitDeclaration(self, gen):
-        from CLR.System.Reflection.Emit import CustomAttributeBuilder
+        from System.Reflection.Emit import CustomAttributeBuilder
 
         if self.__declsBuilt: return
         self.__declsBuilt = True
