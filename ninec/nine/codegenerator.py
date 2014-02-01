@@ -9,6 +9,28 @@ from System.Reflection import Emit
 
 from ast import vartypes
 
+class SpyILGen(object):
+    def __init__(self, inner):
+        self.__inner = inner
+
+    def spymethod(name):
+        def f(self, *args):
+            print 'SpyILGen.%s: %r' % (name, args)
+            return getattr(self.__inner, name)(*args)
+        return f
+
+    Emit = spymethod('Emit')
+    DefineLabel = spymethod('DefineLabel')
+    MarkLabel = spymethod('MarkLabel')
+
+VERBOSE = False
+
+def spyOn(ilgen):
+    if VERBOSE:
+        return SpyILGen(ilgen)
+    else:
+        return ilgen
+
 class CodeGenerator(object):
     # Get some references to enums and things that will be frequently useful for code generation.
     # This alleviates the need to pepper .NET imports all over the compiler.
@@ -51,7 +73,7 @@ class CodeGenerator(object):
         self.asmBuilder = domain.DefineDynamicAssembly(
             asmName,
             Emit.AssemblyBuilderAccess.Save,
-            path or None
+            path
         )
 
         self.module = self.asmBuilder.DefineDynamicModule(
@@ -81,7 +103,7 @@ class CodeGenerator(object):
 
         self.methodBuilder = self.mainMethod
 
-        self.ilGen = self.methodBuilder.GetILGenerator()
+        self.ilGen = spyOn(self.methodBuilder.GetILGenerator())
 
     def defineGlobal(self, name, type):
         assert type.builder is not None, 'Internal error: type %r has no builder' % type
