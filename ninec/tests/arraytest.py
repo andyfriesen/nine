@@ -90,7 +90,7 @@ class ArrayTest(unittest.TestCase):
 
         util.runProgram('array_userclass_test', program)
 
-    def no_testIndexValueTypeMethod(self):
+    def testIndexValueTypeMethod(self):
         program = util.source('''
             var things = array(int, 1)
 

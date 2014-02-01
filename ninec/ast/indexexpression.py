@@ -96,8 +96,7 @@ class IndexExpression(object):
             index.emitLoad(gen)
 
         if 1 == len(self.indicies):
-            opcode = storeOpcode(self.identifier.getType().arrayType.builder)
-            gen.ilGen.Emit(opcode, self.identifier.getType().arrayType.builder)
+            gen.ilGen.Emit(OpCodes.Ldelema, self.identifier.getType().arrayType.builder)
         else:
             getm = self.identifier.variable.type.builder.GetMethod('Address', getArgs)
             gen.ilGen.Emit(gen.opCodes.Call, getm)
