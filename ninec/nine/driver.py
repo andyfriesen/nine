@@ -12,9 +12,9 @@ class Driver(object):
         self.references.append(assemblyName)
 
     def _loadAssembly(self, assemblyName):
-        from CLR.System import String
-        from CLR.System.Reflection import Assembly
-        from CLR.System.IO import FileLoadException
+        from System import String
+        from System.Reflection import Assembly
+        from System.IO import FileLoadException
 
         try:
             # HACK around WEIRD bug in Python .NET
@@ -33,9 +33,9 @@ class Driver(object):
         from ast.vartypes import Type
         from ast.external import ExternalType
 
-        from CLR import System
-        from CLR.System import Reflection
-        from CLR.System.Reflection import Assembly
+        import System
+        from System import Reflection
+        from System.Reflection import Assembly
 
         #assembly = Assembly.LoadWithPartialName(assemblyName)
         assembly = self._loadAssembly(assemblyName)
@@ -95,17 +95,17 @@ class Driver(object):
 
     def fixPrimitives(self):
         # HACK: make the primitive types match up. (disregard this, as it is wholly insane)
-        import CLR
+        import System
         from nine.util import typeToType as t2t
         from ast.external import ExternalType
         from ast import vartypes
 
-        vartypes.IntType = ExternalType.getNineType(t2t(CLR.System.Int32))
-        vartypes.FloatType = ExternalType.getNineType(t2t(CLR.System.Single))
-        vartypes.CharType = ExternalType.getNineType(t2t(CLR.System.Char))
-        vartypes.StringType = ExternalType.getNineType(t2t(CLR.System.String))
-        vartypes.BooleanType = ExternalType.getNineType(t2t(CLR.System.Boolean))
-        vartypes.VoidType = ExternalType.getNineType(t2t(CLR.System.Void))
+        vartypes.IntType = ExternalType.getNineType(t2t(System.Int32))
+        vartypes.FloatType = ExternalType.getNineType(t2t(System.Single))
+        vartypes.CharType = ExternalType.getNineType(t2t(System.Char))
+        vartypes.StringType = ExternalType.getNineType(t2t(System.String))
+        vartypes.BooleanType = ExternalType.getNineType(t2t(System.Boolean))
+        vartypes.VoidType = ExternalType.getNineType(t2t(System.Void))
 
         vartypes.PrimitiveTypes = {
             'int' : vartypes.IntType,
