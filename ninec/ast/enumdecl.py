@@ -10,7 +10,9 @@ from nine import token
 from nine import util
 from nine.codegenerator import CodeGenerator
 from nine.scope import Scope
-from CLR import System
+
+import clr
+import System
 
 class EnumChild(object):
     def __init__(self, name, value):
@@ -152,8 +154,6 @@ class EnumDecl(Type):
         raise error.NameError, "No symbol named '%s' is defined in enumerator %s" % (name, self.name)
 
     def emitDeclaration(self, gen):
-        import clr
-
         if self.builder is not None:
             return
         self.builder = gen.module.DefineEnum(self.name, gen.TypeAttributes.Public, clr.GetClrType(System.Int32))

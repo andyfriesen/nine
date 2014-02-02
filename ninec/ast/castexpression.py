@@ -48,8 +48,6 @@ class CastExpression(object):
         if argType == type:
             return arg
 
-        print 'arg', arg, arg.getType()
-    
         # make sure that arg can be coerced into the type
         if not type.isDescendant(argType) and not argType.isDescendant(type) and not util.getNineType(System.ValueType).isDescendant(argType):
             raise error.TypeError(self.position, "Cannot cast expression %r from type %r to %r" % (arg, argType, type))
