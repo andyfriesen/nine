@@ -25,7 +25,7 @@ class DelegateTest(unittest.TestCase):
     def testCallDelegate(self):
         program = util.source('''
             def output(a as string) as string:
-                return a
+                return 'Delegate was called with: ' + a
 
             delegate MyDelegate(zz as string) as string
 
