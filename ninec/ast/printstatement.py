@@ -35,10 +35,16 @@ class PrintStatement(object):
         argType = self.arg.getType()
         assert argType is not None, self.arg
 
-        if not isinstance(argType.builder, System.Reflection.Emit.TypeBuilder):
-            consoleArgs[0] = argType.builder
+        if argType.builder.BaseType == System.Enum:
+            consoleArgs[0] = vartypes.IntType.builder
+
         else:
-            consoleArgs[0] = System.Object
+            for n, pt in vartypes.PrimitiveTypes.iteritems():
+                if argType.isSubClass(pt):
+                    consoleArgs[0] = pt.builder
+                    break
+            else:
+                consoleArgs[0] = System.Object
 
         # This is silly.  Need to get a System.Type reference for the Console class.
         consoleType = clr.GetClrType(System.Console)

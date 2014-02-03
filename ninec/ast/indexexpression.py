@@ -104,30 +104,27 @@ class IndexExpression(object):
     def emitAssign(self, rhs, gen):
         arrayType = self.identifier.getType()
 
-        if 1 == len(self.indicies):
-            self.identifier.emitLoad(gen)
-            self.indicies[0].emitLoad(gen)
-            rhs.emitLoad(gen)
+        self.identifier.emitLoad(gen)
 
+        for index in self.indicies:
+            index.emitLoad(gen)
+
+        rhs.emitLoad(gen)
+
+
+        if 1 == len(self.indicies):
             opcode = storeOpcode(arrayType.arrayType.builder)
     
             gen.ilGen.Emit(opcode)
-            return
+
         else:
-            pass
-    
-        setArgs = [System.Int32]*len(self.indicies)
-        setArgs.append(arrayType.arrayType.builder)
-        setArgs = util.toTypedArray(System.Type, setArgs)
+            setArgs = [System.Int32] * len(self.indicies)
+            setArgs.append(arrayType.arrayType.builder)
+            setArgs = util.toTypedArray(System.Type, setArgs)
 
-        setm = arrayType.builder.GetMethod('Set', setArgs)
+            setm = arrayType.builder.GetMethod('Set', setArgs)
 
-        self.identifier.emitLoad(gen)
-        for index in self.indicies:
-            index.emitLoad(gen)
-        rhs.emitLoad(gen)
-
-        gen.ilGen.Emit(gen.opCodes.Call, setm)
+            gen.ilGen.Emit(gen.opCodes.Call, setm)
 
     def __repr__(self):
         return '%r [ %r ]' % (self.identifier, self.indicies)

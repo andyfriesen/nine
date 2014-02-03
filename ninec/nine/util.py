@@ -59,10 +59,10 @@ def getNineType(theType):
     return ExternalType.getNineType(theType)
 
 def getNetType(theType):
-    from ast.vartypes import Type, __WTF
+    from ast.vartypes import Type, PrimitiveType
     from ast.external import ExternalType
 
-    if isinstance(theType, __WTF):
+    if isinstance(theType, PrimitiveType):
         return theType.semantic(None)
 
     if hasattr(theType, 'builder'):

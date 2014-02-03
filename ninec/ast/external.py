@@ -600,4 +600,4 @@ class ExternalMethodCall(object):
             gen.ilGen.Emit(gen.opCodes.Call, self.methodInfo)
 
     def __repr__(self):
-        return '%s . %s %r' % (self.this, self.methodInfo.Name, self.args)
+        return '<ExternalMethodCall %s . %s %r>' % (self.this, self.methodInfo.Name, self.args)
