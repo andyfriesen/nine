@@ -8,8 +8,8 @@ from ast.memberflags import MemberFlags
 from nine import error
 from nine import util
 
-from CLR import System
-from CLR.System.Reflection import BindingFlags, MemberTypes
+import System
+from System.Reflection import BindingFlags, MemberTypes
 
 theFlag = 0
 
@@ -110,8 +110,14 @@ class ExternalClass(classdecl.ClassDecl):
 
         assert None not in args, paramList
 
+        # IronPython hack: Querying MulticastDelegate for its Invoke method segfaults Mono for some reason.
+        # -- andy 2 Feb 2014
+        if self.builder == System.MulticastDelegate and name == 'Invoke':
+            return None
+
         methodInfo = self.builder.GetMethod(name, args)
-        if methodInfo is None: return None
+        if methodInfo is None:
+            return None
 
         if System.Object.ReferenceEquals(methodInfo.ReturnType, returnType):
             return ExternalMethod(self, methodInfo)
@@ -594,4 +600,4 @@ class ExternalMethodCall(object):
             gen.ilGen.Emit(gen.opCodes.Call, self.methodInfo)
 
     def __repr__(self):
-        return '%s . %s %r' % (self.this, self.methodInfo.Name, self.args)
+        return '<ExternalMethodCall %s . %s %r>' % (self.this, self.methodInfo.Name, self.args)

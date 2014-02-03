@@ -1,6 +1,26 @@
 from nine import error
 from nine import util
-from CLR import System
+import System
+import clr
+
+from System.Reflection.Emit import OpCodes
+
+OPCODE_MAP = dict(
+    (clr.GetClrType(t), (getattr(OpCodes, 'Ldelem_' + o), getattr(OpCodes, 'Stelem_' + o)))
+    for (t, o) in [
+        (System.Int32, 'I4'),
+        (System.Single, 'R4'),
+    ]
+)
+
+def lookupOpcode(t):
+    return OPCODE_MAP.get(t, (OpCodes.Ldelem_Ref, OpCodes.Stelem_Ref))
+
+def loadOpcode(t):
+    return lookupOpcode(t)[0]
+
+def storeOpcode(t):
+    return lookupOpcode(t)[1]
 
 class IndexExpression(object):
     def __init__(self, position, identifier, indicies):
@@ -61,35 +81,50 @@ class IndexExpression(object):
         for i, index in enumerate(self.indicies):
             index.emitLoad(gen)
 
-        gen.ilGen.Emit(gen.opCodes.Call, getm)
+        if 1 == len(self.indicies):
+            op = loadOpcode(arrayType.arrayType.builder)
+            gen.ilGen.Emit(op)
+        else:
+            gen.ilGen.Emit(gen.opCodes.Call, getm)
 
     def emitLoadAddress(self, gen):
         getArgs = [System.Int32] * len(self.indicies)
         getArgs = util.toTypedArray(System.Type, getArgs)
 
-        getm = self.identifier.variable.type.builder.GetMethod('Address', getArgs)
-
         self.identifier.emitLoad(gen)
         for i, index in enumerate(self.indicies):
             index.emitLoad(gen)
 
-        gen.ilGen.Emit(gen.opCodes.Call, getm)
+        if 1 == len(self.indicies):
+            gen.ilGen.Emit(OpCodes.Ldelema, self.identifier.getType().arrayType.builder)
+        else:
+            getm = self.identifier.variable.type.builder.GetMethod('Address', getArgs)
+            gen.ilGen.Emit(gen.opCodes.Call, getm)
 
     def emitAssign(self, rhs, gen):
         arrayType = self.identifier.getType()
 
-        setArgs = [System.Int32]*len(self.indicies)
-        setArgs.append(arrayType.arrayType.builder)
-        setArgs = util.toTypedArray(System.Type, setArgs)
-
-        setm = arrayType.builder.GetMethod('Set', setArgs)
-
         self.identifier.emitLoad(gen)
+
         for index in self.indicies:
             index.emitLoad(gen)
+
         rhs.emitLoad(gen)
 
-        gen.ilGen.Emit(gen.opCodes.Call, setm)
+
+        if 1 == len(self.indicies):
+            opcode = storeOpcode(arrayType.arrayType.builder)
+    
+            gen.ilGen.Emit(opcode)
+
+        else:
+            setArgs = [System.Int32] * len(self.indicies)
+            setArgs.append(arrayType.arrayType.builder)
+            setArgs = util.toTypedArray(System.Type, setArgs)
+
+            setm = arrayType.builder.GetMethod('Set', setArgs)
+
+            gen.ilGen.Emit(gen.opCodes.Call, setm)
 
     def __repr__(self):
         return '%r [ %r ]' % (self.identifier, self.indicies)

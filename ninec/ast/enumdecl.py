@@ -10,7 +10,9 @@ from nine import token
 from nine import util
 from nine.codegenerator import CodeGenerator
 from nine.scope import Scope
-from CLR import System
+
+import clr
+import System
 
 class EnumChild(object):
     def __init__(self, name, value):
@@ -154,7 +156,7 @@ class EnumDecl(Type):
     def emitDeclaration(self, gen):
         if self.builder is not None:
             return
-        self.builder = gen.module.DefineEnum(self.name, gen.TypeAttributes.Public, util.getNetType(System.Int32))
+        self.builder = gen.module.DefineEnum(self.name, gen.TypeAttributes.Public, clr.GetClrType(System.Int32))
         for decl in self.body.decls:
             decl.emitDeclaration(gen)
 

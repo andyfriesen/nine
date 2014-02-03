@@ -51,6 +51,12 @@ class ArrayTest(unittest.TestCase):
 
         util.runProgram('array_test', program, [])
 
+    def testStringArray(self):
+        util.runProgram('array_string_test', util.source('''
+            var s = array(string, 1)
+            s[0] = "sup yall"
+        '''))
+
     def testMultiDimArray(self):
         program = util.source('''
             var c = array(float, 1, 2)

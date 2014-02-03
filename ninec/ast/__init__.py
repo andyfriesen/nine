@@ -1,7 +1,8 @@
 __all__ = [
-    'expression',
-    'statement',
-    'printstatement',
     'addexpression',
+    'declaration',
+    'expression',
     'external'
+    'printstatement',
+    'statement',
 ]

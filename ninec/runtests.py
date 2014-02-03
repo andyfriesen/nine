@@ -10,6 +10,18 @@ from glob import glob
 
 from unittest import TestSuite, TextTestRunner, makeSuite
 
+import CLR
+
+args = map(str.lower, sys.argv[1:])
+
+def shouldRun(filename, testName):
+    if not args:
+        return True
+    for arg in args:
+        if arg in filename.lower() or arg in testName.lower():
+            return True
+    return False
+
 def main():
     # Remove stdout.txt if it exists
     if os.access('stdout.txt', os.F_OK):
@@ -29,10 +41,14 @@ def main():
 
         for name, cls in module.__dict__.iteritems():
             if name.startswith('Test') or name.endswith('Test'):
-                print >> sys.stderr, "Testing " + name
-                suite.addTest(makeSuite(cls))
+                if shouldRun(moduleName, name):
+                    print >> sys.stderr, "Testing  " + name
+                    suite.addTest(makeSuite(cls))
 
-    TextTestRunner().run(suite)
+                else:
+                    print >> sys.stderr, "Skipping " + name
+
+    TextTestRunner(verbosity=2).run(suite)
 
 if __name__ == '__main__':
     main()

@@ -14,6 +14,8 @@ from nine import util
 from nine.codegenerator import CodeGenerator
 from nine.scope import Scope
 
+import System
+
 class ClassBody(object):
     def __init__(self, decls, attrs=None):
         self.attributes = attrs or []
@@ -162,8 +164,6 @@ class ClassDecl(Declaration, Type):
         circular inheritance chains, and inheriting things which are not
         interfaces or classes.
         '''
-        from CLR import System
-
         from ast.interfacedecl import InterfaceDecl
 
         for index, base in enumerate(self.bases):
@@ -298,7 +298,6 @@ class ClassDecl(Declaration, Type):
 
     def getMethod(self, name, paramList, returnType):
         from ast.functiondecl import FunctionDecl
-        from CLR import System
 
         for decl in self.body.decls:
             if decl.name != name or not isinstance(decl, FunctionDecl): continue
@@ -346,8 +345,6 @@ class ClassDecl(Declaration, Type):
 
         log.write('emit', 'emitType class ', self, self.name)
 
-        from CLR import System
-
         flags = gen.TypeAttributes.Public
 
         if self.flags.abstract:
@@ -369,7 +366,7 @@ class ClassDecl(Declaration, Type):
         self.builder = gen.module.DefineType(self.name, flags, self.baseClass.builder, ifaces)
 
     def emitDeclaration(self, gen):
-        from CLR.System.Reflection.Emit import CustomAttributeBuilder
+        from System.Reflection.Emit import CustomAttributeBuilder
 
         if self.__declsBuilt: return
         self.__declsBuilt = True
@@ -377,8 +374,8 @@ class ClassDecl(Declaration, Type):
         log.write('emit', 'emitDeclaration class ', self, self.name)
 
         for attr in self.attributes:
-            ctorInfo = attr.className.builder.GetConstructor([])
-            attrBuilder = CustomAttributeBuilder(ctorInfo, [])
+            ctorInfo = attr.className.builder.GetConstructor(System.Array.CreateInstance(System.Type, 0))
+            attrBuilder = CustomAttributeBuilder(ctorInfo, System.Array.CreateInstance(System.Object, 0))
             self.builder.SetCustomAttribute(attrBuilder)
 
         # Be sure base classes get their stuff done before us.

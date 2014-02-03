@@ -27,8 +27,11 @@ class Quad:
         for p in self.points:
             p.Draw()
 ```
+If you're interested in further detail, check out the test suite in `ninec/tests`.  By
+and large, the tests compile and run programs that exercise just about
+every corner of the syntax.
 
 # Running the Code
 
-I promise I have absolutely no idea.  It requires [Python for .NET](http://pythonnet.sourceforge.net/) to run and requires
-Python 2.4 or something like that.  Some updating will obviously be necessary.
+I've gotten all the tests to run green on IronPython 2.9.9a0 on
+Mono 3.2.5 on OSX.  I really hope it will also run on Windows.

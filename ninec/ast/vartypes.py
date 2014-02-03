@@ -123,37 +123,41 @@ class Type(object):
 
         if self.builder is None: return self is rhs
 
-        from CLR import System
+        import System
         return System.Object.ReferenceEquals(self.builder, rhs.builder)
 
     def __ne__(self, rhs):
         return not self.__eq__(rhs)
 
-# I hate this stupid class.  It's needed, though, because they need to be known about before assemblies are scanned.
+# This class is a ridiculous hack: we replace this global state early in compilation, but
+# we need these types to exist before anything else.  It's a gong show. :(
 # Their semantic() phase replaces them with the proper type
-class __WTF:
+class PrimitiveType(object):
     def __init__(self, type):
-        from nine import util
-        self.type = util.getNetType(type)
+        # from nine import util
+        import clr
+        self.type = clr.GetClrType(type)
         
     def __repr__(self):
-        return '<WTF %s>' % self.type.FullName
+        return '<PrimitiveType %s>' % self.type.FullName
 
     def semantic(self, *args):
         from nine import util
         return util.getNineType(self.type)
 
-IntType = __WTF(System.Int32)
-FloatType = __WTF(System.Single)
-BooleanType = __WTF(System.Boolean)
-CharType = __WTF(System.Char)
-StringType = __WTF(System.String)
-VoidType = __WTF(System.Void)
-ObjectType = __WTF(System.Object)
+IntType = PrimitiveType(System.Int32)
+FloatType = PrimitiveType(System.Single)
+DoubleType = PrimitiveType(System.Double)
+BooleanType = PrimitiveType(System.Boolean)
+CharType = PrimitiveType(System.Char)
+StringType = PrimitiveType(System.String)
+VoidType = PrimitiveType(System.Void)
+ObjectType = PrimitiveType(System.Object)
 
 PrimitiveTypes = {
     'int' : IntType,
     'float' : FloatType,
+    'double' : DoubleType,
     'boolean' : BooleanType,
     'char' : CharType,
     'string' : StringType,

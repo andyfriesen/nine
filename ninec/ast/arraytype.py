@@ -99,8 +99,8 @@ class ArrayType(external.ExternalType):
                     # HACK
                     # Don't have a builder for the array type, so can't get a builder for an array of that type.
                     # Just return the base array type.  It'll serve well enough for method lookup and the like.
-                    from CLR import System
-                    return util.getNetType(System.Array)
+                    import clr
+                    return clr.GetClrType(System.Array)
 
                 else:
                     # Ask the ModuleBuilder for arrays of user types.

@@ -90,9 +90,8 @@ class AttributeTest(unittest.TestCase):
         util.buildProgram('attribute_code_generation_test', program, ['bin/ClassLibrary1'])
 
         # Load the resulting executable and check that the attribute is there
-        import CLR
-        from CLR.System import String
-        from CLR.System.Reflection import Assembly
+        from System import String
+        from System.Reflection import Assembly
 
         program = Assembly.Load(String('bin/attribute_code_generation_test'))
         x = program.GetType('X')
