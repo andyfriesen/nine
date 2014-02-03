@@ -129,7 +129,8 @@ class Type(object):
     def __ne__(self, rhs):
         return not self.__eq__(rhs)
 
-# I hate this stupid class.  It's needed, though, because they need to be known about before assemblies are scanned.
+# This class is a ridiculous hack: we replace this global state early in compilation, but
+# we need these types to exist before anything else.  It's a gong show. :(
 # Their semantic() phase replaces them with the proper type
 class PrimitiveType(object):
     def __init__(self, type):
@@ -146,6 +147,7 @@ class PrimitiveType(object):
 
 IntType = PrimitiveType(System.Int32)
 FloatType = PrimitiveType(System.Single)
+DoubleType = PrimitiveType(System.Double)
 BooleanType = PrimitiveType(System.Boolean)
 CharType = PrimitiveType(System.Char)
 StringType = PrimitiveType(System.String)
@@ -155,6 +157,7 @@ ObjectType = PrimitiveType(System.Object)
 PrimitiveTypes = {
     'int' : IntType,
     'float' : FloatType,
+    'double' : DoubleType,
     'boolean' : BooleanType,
     'char' : CharType,
     'string' : StringType,

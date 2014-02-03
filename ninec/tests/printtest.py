@@ -60,6 +60,13 @@ class PrintTest(unittest.TestCase):
 
         util.runProgram('print_codegen_test', program)
 
+    def testTypes(self):
+        util.runProgram('print_types', util.source('''
+            print (27 as int)
+            print (27 as float)
+            print (27 as System.Double)
+            print (true as boolean)
+        '''), ['mscorlib'])
 
 if __name__ == '__main__':
     unittest.main()
